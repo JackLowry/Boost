@@ -466,9 +466,9 @@ def save_map(pts, C_1, C_2):
 #function to restart program if user inputs the letter r
 def restart():
     import sys
-    print("argv was", sys.argv)
-    print("sys.executable was", sys.executable)
-    print("restart now")
+    #print("argv was", sys.argv)
+    #print("sys.executable was", sys.executable)
+    #print("restart now")
 
     import os
     os.execv(sys.executable, ['python'] + sys.argv)
