@@ -123,6 +123,7 @@ def title_screen(screen):
         if BOOST_MODE_KAPPA is not None:
             print("LOL POG")
             os.system('python racertest.py')
+            pygame.quit()
             return
         boostButton.draw(screen)
 
