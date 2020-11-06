@@ -656,7 +656,7 @@ def start(g_list, config):
         n_nets = [None]*cars
         if(g_list is not None):
             for i in range(len(g_list)):
-                print(g_list[i][1])
+                #print(g_list[i][1])
                 n_nets[i] = neat.nn.recurrent.RecurrentNetwork.create(g_list[i][1], config)
 
         scores = [0]*cars
@@ -736,7 +736,7 @@ def start(g_list, config):
             
             if(not still_alive):
                 if(g_list is not None):
-                    print(g_list)
+                    #print(g_list)
                     with open('pkl/winner_' + str(generation) + '.pkl', 'wb') as output:
                         pickle.dump(g_list[scores.index(max(scores))][1], output, 1)
                     for i in range(len(g_list)):
@@ -759,7 +759,7 @@ if(len(sys.argv) == 1):
     p.add_reporter(neat.StdOutReporter(True))
     stats = neat.StatisticsReporter()
     p.add_reporter(stats)
-    p.add_reporter(neat.Checkpointer(1))
+    p.add_reporter(neat.Checkpointer(1, filename_prefix="cp/neat-checkpoint-"))
 
     #pe = neat.ParallelEvaluator(multiprocessing.cpu_count(), start)
     winner = p.run(start, 150)
