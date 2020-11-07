@@ -78,6 +78,8 @@ gas = 0
 analogAccelerationFlag = False  #set to false for now, set true when analog is there
 analogTurning = 0
 
+
+#multithreading the analog inputs
 def geteventThread():
     global run
     global gas
@@ -111,6 +113,10 @@ class Car(pygame.sprite.Sprite):        #this is object-oriented car stuff, pret
         self.x = 0
         self.y = 0
         self.weight = .05
+        self.leftTop = (0, 0)
+        self.rightTop = (0, 0)
+        self.leftBottom = (0, 0)
+        self.rightBottom = (0, 0)
 
 def get_complex_coords(string):
     c = [float(n) for n in string.split(",")]
@@ -118,6 +124,72 @@ def get_complex_coords(string):
 
 def arr_to_complex(arr):
     return complex(arr[0], arr[1])
+
+def updateHitbox(car, screen):
+    #store the center of the vehicle for future reference.
+    carCenterX = car.x
+    carCenterY = car.y
+
+    #These values are hardcoded for now, but they are the dimensions of the car
+    carLength = 20
+    carWidth = 10
+
+    leftTop = [ carCenterX + math.cos( math.radians( 360 - ( car.dir + 30 ) ) ) * carLength, carCenterY + math.sin( math.radians( 360 - ( car.dir + 30 ) ) ) * carWidth]
+    pygame.draw.circle(screen, RED, leftTop, 5)
+
+def draw_map(screen, map_pts):
+    circle_r = 50
+    checkpoint_num = 0
+    checkpoint_dist = 100
+    for i in range(len(map_pts)):
+        pygame.draw.circle(screen, BLACK, (map_pts[i][0], map_pts[i][1]), circle_r)
+
+
+    dist = 0
+    for i in range(1, len(map_pts)):
+        x = map_pts[i][0]
+        y = map_pts[i][1]
+
+        
+        x_p = map_pts[i-1][0]
+        y_p = map_pts[i-1][1]
+        dx = x-x_p
+        dy = y-y_p
+        dist += math.sqrt(dx*dx + dy*dy)
+        if(dist >= checkpoint_num*checkpoint_dist):
+            rect_angle = math.atan2(dy,dx)
+            print("angle:", rect_angle)
+            width = 10
+            height = circle_r*2
+            rect_points = [(x-width/2, y+height/2), (x+width/2, y+height/2), (x+width/2, y-height/2), (x-width/2, y-height/2)]
+            r_rect_points = [None]*4
+            for i in range(len(rect_points)):
+                #p = (x, y)
+                p = rect_points[i]
+                p = (p[0]-x, p[1]-y)
+                p= (p[0]*math.cos(rect_angle) - p[1]*math.sin(rect_angle), p[1]*math.cos(rect_angle) + p[0]*math.sin(rect_angle))
+                r_rect_points[i] = (p[0]+x, p[1]+y)
+            
+            pygame.draw.polygon(screen, (0,0,255), r_rect_points)
+            checkpoint_num += 1
+
+def load_map(file):
+    return
+
+def save_map(pts, C_1, C_2):
+    file_str = "<?xml version='1.0' encoding='UTF-8' standalone='no'?>\n<svg xmlns='http://www.w3.org/2000/svg' version='1.1' height='900px' width='1600px'>\n<path style='fill:none; stroke:black'\nd='"
+    post_str = "' />\n</svg>"
+    svg_str = "M " + str(pts[0][0]) + "," + str(pts[0][1])
+    for i in range(1, len(pts)):
+        svg_str += " C " + str(C_1[i-1][0]) + "," + str(C_1[i-1][1]) + " " + str(C_2[i-1][0]) + "," + str(C_2[i-1][1]) + " " + str(pts[i][0]) + "," + str(pts[i][1])
+    n = len(C_1)-1
+    svg_str += " C " + str(C_1[n][0]) + "," + str(C_1[n][1]) + " " + str(C_2[n][0]) + "," + str(C_2[n][1]) + " " + str(pts[0][0]) + "," + str(pts[0][1])
+    file_str = file_str + svg_str + post_str
+    file = open('test.svg', 'w')
+    file.write(file_str)
+    file.close()
+
+
 
 def start():
 
@@ -243,13 +315,19 @@ def start():
         pygame.mouse.set_visible(True)
         pressed = False
         pts = []
+        C_1 = []
+        C_2 = []
+        n = []
         while run:
+
             for event in pygame.event.get(): 
                 if event.type == pygame.QUIT: 
                     run = False
             key_pressed = pygame.key.get_pressed()  #pressed in an array of keys pressed at this tick
 
             if key_pressed[pygame.K_q]:       #hitting q when in the game will break the loop and close the game
+                if(n >= 3):
+                    save_map(pts, C_1,C_2)
                 run = False
                 return Score
             clock.tick(FPS)
@@ -270,9 +348,6 @@ def start():
                     n = len(pts)
                     #print(pts)
                     if(n >= 3):
-                        
-
-
                         A = [0] + [1]*(n-2) + [2]
                         B = [2] + [4]*(n-2) + [7]
                         C = [1]*(n-1) + [0]
@@ -339,40 +414,7 @@ def start():
 
                         print("length:", len(map_pts))
 
-                        circle_r = 50
-                        checkpoint_num = 0
-                        checkpoint_dist = 100
-                        for i in range(len(map_pts)):
-                            pygame.draw.circle(screen, BLACK, (map_pts[i][0], map_pts[i][1]), circle_r)
-
-
-                        dist = 0
-                        for i in range(1, len(map_pts)):
-                            x = map_pts[i][0]
-                            y = map_pts[i][1]
-
-                            
-                            x_p = map_pts[i-1][0]
-                            y_p = map_pts[i-1][1]
-                            dx = x-x_p
-                            dy = y-y_p
-                            dist += math.sqrt(dx*dx + dy*dy)
-                            if(dist >= checkpoint_num*checkpoint_dist):
-                                rect_angle = math.atan2(dy,dx)
-                                print("angle:", rect_angle)
-                                width = 10
-                                height = circle_r*2
-                                rect_points = [(x-width/2, y+height/2), (x+width/2, y+height/2), (x+width/2, y-height/2), (x-width/2, y-height/2)]
-                                r_rect_points = [None]*4
-                                for i in range(len(rect_points)):
-                                    p = rect_points[i]
-                                    p = (p[0]-x, p[1]-y)
-                                    p= (p[0]*math.cos(rect_angle) - p[1]*math.sin(rect_angle), p[1]*math.cos(rect_angle) + p[0]*math.sin(rect_angle))
-                                    r_rect_points[i] = (p[0]+x, p[1]+y)
-                                
-                                pygame.draw.polygon(screen, (0,0,255), r_rect_points)
-                                checkpoint_num += 1
-
+                        draw_map(screen, map_pts)
 
 
             else:
@@ -392,6 +434,9 @@ def start():
             print("Error: unable to start thread")
 
         while run:
+
+
+
             for event in pygame.event.get(): 
                 if event.type == pygame.QUIT: 
                     run = False
@@ -399,6 +444,7 @@ def start():
             clock.tick(FPS)
             if (analogAccelerationFlag == False):
                 gas = 0
+
 
             #COLLECT DIGITAL ACCELERATION (KEYBOARD)
             pressed = pygame.key.get_pressed()  #pressed in an array of keys pressed at this tick
@@ -564,6 +610,8 @@ def start():
         
             
             Cars.draw(screen)   #draws all cars in the group to the screen
+            # plot the left corner.
+            updateHitbox(car, screen)
             pygame.display.flip()   #actually updates the screen
             
 start()     #runs that start fn at the beginning
