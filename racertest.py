@@ -131,10 +131,18 @@ def updateHitbox(car, screen):
     carCenterY = car.y
 
     #These values are hardcoded for now, but they are the dimensions of the car
-    carLength = 20
-    carWidth = 10
+    carLength = 92
+    carWidth = 50
 
-    leftTop = [ carCenterX + math.cos( math.radians( 360 - ( car.dir + 30 ) ) ) * carLength, carCenterY + math.sin( math.radians( 360 - ( car.dir + 30 ) ) ) * carWidth]
+    #leftTop = [carCenterX + math.cos(math.radians(360 - ( car.dir + 30 ) ) ) * carLength, carCenterY + math.sin( math.radians( 360 - ( car.dir + 30 ) ) ) * carWidth]
+    #leftTopY = (carLength/2)*math.cos(math.radians(90-car.dir)) + carCenterY
+    #leftTopX = (carLength/2)*math.sin(math.radians(90-car.dir)) + carCenterX
+    leftTopX = carCenterX-carWidth/2
+    differenceX = carCenterX - leftTopX
+    leftTopY = carCenterY - carLength/2
+    differenceY = carCenterY - leftTopY
+    leftTopX += (differenceX)*math.cos(math.radians(car.dir)) - (differenceY)*math.cos(math.radians(car.dir))
+    leftTop = [leftTopX,leftTopY]
     pygame.draw.circle(screen, RED, leftTop, 5)
 
 def draw_map(screen, map_pts):
