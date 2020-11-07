@@ -49,11 +49,11 @@ def start():
     #Some variables for the car, eventually these should probably be in the object, like car.score
     Score = 0
     gas = 0     #either 1 when w is pressed or 0 or -1 when s is pressed
-    carPower = .1
+    carPower = .15
         #a 'power' number, basically the acceleration number
     carTopSpeed = 20    #top speed in pixels/tick
     carCornering = 3    #number of degrees it turns per tick of holding a or d
-    weight = 1.5   #basically the friction value for the car, as a percentage of the current velocity that will fight its movement
+    weight = 1.9   #basically the friction value for the car, as a percentage of the current velocity that will fight its movement
 
     #Stage Values
     air_resistance = .005
@@ -103,8 +103,9 @@ def start():
 
         turning_angle = 0
         if(pressed[pygame.K_d]):
-            turning_angle = -1*carCornering
-            car.dir += -1*carCornering #* ( car.velocityMagnitude / carTopSpeed )
+            if(abs(car.velocityMagnitude)>1):
+                turning_angle = -1*carCornering
+                car.dir += -1*carCornering #* ( car.velocityMagnitude / carTopSpeed )
             # accDir += -1*carCornering #degrees, and yes this works
             # accDir = (abs(accDir) % 360) * np.sign(accDir)
             car.dir = car.dir % 360
@@ -115,8 +116,9 @@ def start():
             car.rect = car.image.get_rect() 
             car.rect.center = (x, y)    #yeah this was weird, but it's the proper way to rotate stuff
         elif(pressed[pygame.K_a]):
-            turning_angle = carCornering
-            car.dir += carCornering #* ( car.velocityMagnitude / carTopSpeed )
+            if(abs(car.velocityMagnitude)>1):
+                turning_angle = carCornering
+                car.dir += carCornering #* ( car.velocityMagnitude / carTopSpeed )
             # accDir += carCornering  #degrees
             # accDir = (abs(accDir) % 360) * np.sign(accDir)
             car.dir = car.dir % 360
