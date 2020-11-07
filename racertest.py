@@ -74,6 +74,8 @@ gas = 0;
 analogAccelerationFlag = False  #set to false for now, set true when analog is there
 analogTurning = 0
 
+
+#multithreading the analog inputs
 def geteventThread():
     global run
     global gas
@@ -107,6 +109,10 @@ class Car(pygame.sprite.Sprite):        #this is object-oriented car stuff, pret
         self.x = 0
         self.y = 0
         self.weight = .05
+        self.leftTop = (0, 0)
+        self.rightTop = (0, 0)
+        self.leftBottom = (0, 0)
+        self.rightBottom = (0, 0)
 
 def get_complex_coords(string):
     c = [float(n) for n in string.split(",")]
@@ -114,6 +120,18 @@ def get_complex_coords(string):
 
 def arr_to_complex(arr):
     return complex(arr[0], arr[1])
+
+def updateHitbox(car, screen):
+    #store the center of the vehicle for future reference.
+    carCenterX = car.x
+    carCenterY = car.y
+
+    #These values are hardcoded for now, but they are the dimensions of the car
+    carLength = 20
+    carWidth = 10
+
+    leftTop = [ carCenterX + math.cos( math.radians( 360 - ( car.dir + 30 ) ) ) * carLength, carCenterY + math.sin( math.radians( 360 - ( car.dir + 30 ) ) ) * carWidth]
+    pygame.draw.circle(screen, RED, leftTop, 5)
 
 def start():
 
@@ -235,11 +253,14 @@ def start():
 
 
     run = True
+
+    # DRAWING MAP
     if(len(sys.argv) == 2):
         pygame.mouse.set_visible(True)
         pressed = False
         pts = []
         while run:
+
             for event in pygame.event.get(): 
                 if event.type == pygame.QUIT: 
                     run = False
@@ -351,6 +372,9 @@ def start():
             print("Error: unable to start thread")
 
         while run:
+
+
+
             for event in pygame.event.get(): 
                 if event.type == pygame.QUIT: 
                     run = False
@@ -358,6 +382,7 @@ def start():
             clock.tick(FPS)
             if (analogAccelerationFlag == False):
                 gas = 0
+
 
             #COLLECT DIGITAL ACCELERATION (KEYBOARD)
             pressed = pygame.key.get_pressed()  #pressed in an array of keys pressed at this tick
@@ -523,6 +548,8 @@ def start():
         
             
             Cars.draw(screen)   #draws all cars in the group to the screen
+            # plot the left corner.
+            updateHitbox(car, screen)
             pygame.display.flip()   #actually updates the screen
             
 start()     #runs that start fn at the beginning
