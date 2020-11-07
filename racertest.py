@@ -3,10 +3,37 @@ import random
 import numpy as np
 import math
 from pynput.keyboard import Key, Controller
+from inputs import devices
+from inputs import get_gamepad
+import _thread
+
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 RED = (255,0,0)
 GRAY = (220,220,200)
+
+run = True
+gas = 0;
+analogAccelerationFlag = False  #set to false for now, set true when analog is there
+analogTurning = 0
+
+def geteventThread():
+    global run
+    global gas
+    global analogAccelerationFlag
+    global analogTurning
+    while (run):
+        events = get_gamepad()
+        for event in events:
+            analogAccelerationFlag = True
+            if (event.code == "ABS_RZ"):
+                print("ACCELERATING WITH MAGNITUDE ", event.state / 255)
+                gas = event.state/255
+            elif (event.code == "ABS_Z"):
+                print("\tDECELERATING WITH MAGNITUDE ", -1 * (event.state/255)/3)
+                gas = -1 * (event.state/255)/3
+            if (event.code == "ABS_X"):
+                analogTurning = event.state / 32800
 
 
 class Car(pygame.sprite.Sprite):        #this is object-oriented car stuff, pretty simple
@@ -24,6 +51,10 @@ class Car(pygame.sprite.Sprite):        #this is object-oriented car stuff, pret
         self.weight = .05
 
 def start():
+    global run
+    global gas
+    global analogAccelerationFlag
+    global analogTurning
         
     successes, failures = pygame.init()   #this inits pygame
     #print("{0} successes and {1} failures".format(successes, failures))
@@ -48,7 +79,10 @@ def start():
 
     #Some variables for the car, eventually these should probably be in the object, like car.score
     Score = 0
-    gas = 0     #either 1 when w is pressed or 0 or -1 when s is pressed
+
+    #OVERRIDDEN BY GLOBAL VARIABLE GAS, CONTROLLED BY CONTROLLER.
+    # gas = 0     #either 1 when w is pressed or 0 or -1 when s is pressed
+
     carPower = .15
         #a 'power' number, basically the acceleration number
     carTopSpeed = 20    #top speed in pixels/tick
@@ -79,29 +113,49 @@ def start():
     for i in range(len(path_pt)):
         path_pt[i] = (300,800)
 
-    run = True
+    #PRINTS ALL CONNECTED DEVICES
+    for device in devices:
+        print(device)
+
+    try:
+        _thread.start_new_thread(geteventThread, ())
+    except:
+        print("Error: unable to start thread")
+
     while run:
         for event in pygame.event.get(): 
             if event.type == pygame.QUIT: 
                 run = False
         screen.fill(WHITE)
         clock.tick(FPS)
-        gas = 0
+        if (analogAccelerationFlag == False):
+            gas = 0
+
+        #COLLECT DIGITAL ACCELERATION (KEYBOARD)
         pressed = pygame.key.get_pressed()  #pressed in an array of keys pressed at this tick
-        if (pressed[pygame.K_w]):
+
+        if(sum(pressed) != 0):  #check if there are any keyboard inputs at all. if there are none, use controller.
+            analogAccelerationFlag = False
+        print("VALUE OF ACCELERATION FLAG: ", analogAccelerationFlag)
+        if (analogAccelerationFlag == False and pressed[pygame.K_w]):
             gas = 1
-        elif (pressed[pygame.K_s]):
+        elif (analogAccelerationFlag == False and pressed[pygame.K_s]):
             gas = -.3
-        elif pressed[pygame.K_q]:       #hitting q when in the game will break the loop and close the game
+        # EXIT CONDITION (ALWAYS A KEYBOARD PRESS) [we can also make the home button on controller exit later]
+        elif pressed[pygame.K_q]:  # hitting q when in the game will break the loop and close the game
             run = False
             return Score
+            #reset flag to false for next frame in case switch back to keyboard
 
+        gasPrinter = myFont.render("GAS: " + str(gas), 1, (0, 0, 0))
+        screen.blit(gasPrinter, (500, 0))
 
 
         if(car.velocityDir>car.dir-2.5 and car.velocityDir<car.dir+2.5):
             drift = False
 
         turning_angle = 0
+        #DIGITAL TURNING LOGIC
         if(pressed[pygame.K_d]):
             if(abs(car.velocityMagnitude)>1):
                 turning_angle = -1*carCornering
@@ -129,6 +183,22 @@ def start():
             car.rect = car.image.get_rect() 
             car.rect.center = (x, y)  
 
+        #ANALOG TURNING LOGIC
+
+        print("ANALOG TURNING POWER: ", analogTurning)
+        if(analogAccelerationFlag == True):
+            if (abs(car.velocityMagnitude) > 1):
+                turning_angle = carCornering * analogTurning * (-1)
+                car.dir += carCornering * analogTurning * (-1)  # * ( car.velocityMagnitude / carTopSpeed )
+                # accDir += -1*carCornering #degrees, and yes this works
+                # accDir = (abs(accDir) % 360) * np.sign(accDir)
+            car.dir = car.dir % 360
+            x, y = car.rect.center
+            copy = pygame.image.load("car.png")
+            copy = pygame.transform.rotate(copy, car.dir - 90)
+            car.image = copy
+            car.rect = car.image.get_rect()
+            car.rect.center = (x, y)  # yeah this was weird, but it's the proper way to rotate stuff
 
 
         path_pt = [(car.rect.centerx, car.rect.centery)] + path_pt[0:998]
