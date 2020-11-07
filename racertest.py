@@ -36,6 +36,7 @@ class Line:
 
 class CBezier:
     N = np.linspace(0,1,1001)
+    length_at_t = [None]*1000
 
     def __init__(self, start, end, c1, c2):
         self.start = start
@@ -53,6 +54,9 @@ class CBezier:
 
             l = Line(complex(l_start_x, l_start_y), complex(l_end_x,l_end_y))
             self.path_length+=l.get_path_length()
+            self.length_at_t[i] = self.path_length
+
+        #print(self.length_at_t)
 
 
     def set_size(self, size):
@@ -70,7 +74,7 @@ class CBezier:
         return ((self.c2.real-self.c1.real)**2 + (self.c2.imag - self.c1.imag)**2)**1/2
 
 run = True
-gas = 0;
+gas = 0
 analogAccelerationFlag = False  #set to false for now, set true when analog is there
 analogTurning = 0
 
@@ -118,58 +122,58 @@ def arr_to_complex(arr):
 def start():
 
 
-    file = open("pi.svg")
+    # file = open("pi.svg")
 
-    regex = "d=.*?z"
-    path = re.search(regex,file.read()).group()
-    paths = path[3:].split(" ")
+    # regex = "d=.*?z"
+    # path = re.search(regex,file.read()).group()
+    # paths = path[3:].split(" ")
 
-    # SVG STUFF
-    coords = complex(0,0)
-    i = 0
-    total_length = 0
-    instr = []
-    while i < len(paths):
-        if paths[i] == "M":
-            coords = get_complex_coords(paths[i+1])
-            i+=2
-        elif paths[i] == "L":
-            end = get_complex_coords(paths[i+1])
-            line = Line(coords, end)
-            instr.append(line)
-            total_length += line.get_path_length()
-            coords = end
-            i+=2
-        elif paths[i] == "C":
-            end= get_complex_coords(paths[i+3])
-            curve = CBezier(coords, end, get_complex_coords(paths[i+1]), get_complex_coords(paths[i+2]))
-            instr.append(curve)
-            total_length += curve.get_path_length()
-            coords = end
-            i+=4
-        else:
-            i+=1
+    # # SVG STUFF
+    # coords = complex(0,0)
+    # i = 0
+    # total_length = 0
+    # instr = []
+    # while i < len(paths):
+    #     if paths[i] == "M":
+    #         coords = get_complex_coords(paths[i+1])
+    #         i+=2
+    #     elif paths[i] == "L":
+    #         end = get_complex_coords(paths[i+1])
+    #         line = Line(coords, end)
+    #         instr.append(line)
+    #         total_length += line.get_path_length()
+    #         coords = end
+    #         i+=2
+    #     elif paths[i] == "C":
+    #         end= get_complex_coords(paths[i+3])
+    #         curve = CBezier(coords, end, get_complex_coords(paths[i+1]), get_complex_coords(paths[i+2]))
+    #         instr.append(curve)
+    #         total_length += curve.get_path_length()
+    #         coords = end
+    #         i+=4
+    #     else:
+    #         i+=1
 
-    starts = []
-    curr_length = 0
+    # starts = []
+    # curr_length = 0
 
-    for i in instr:
-        s=i.get_path_length()/total_length
-        i.set_size(s)
-        starts.append(curr_length)
-        curr_length += s
+    # for i in instr:
+    #     s=i.get_path_length()/total_length
+    #     i.set_size(s)
+    #     starts.append(curr_length)
+    #     curr_length += s
 
-    count = 0
-    t_space = np.linspace(0,1,10001)
-    map_pts= []
-    for t in t_space:
-        if count != len(starts)-1 and starts[count+1] < t:
-            count += 1
-        x = instr[count].x(t-starts[count])
-        y = -instr[count].y(t-starts[count])
-        map_pts.append((x,y))
+    # count = 0
+    # t_space = np.linspace(0,1,10001)
+    # map_pts= []
+    # for t in t_space:
+    #     if count != len(starts)-1 and starts[count+1] < t:
+    #         count += 1
+    #     x = instr[count].x(t-starts[count])
+    #     y = -instr[count].y(t-starts[count])
+    #     map_pts.append((x,y))
 
-    print(map_pts)
+    #print(map_pts)
     global run
     global gas
     global analogAccelerationFlag
@@ -235,7 +239,7 @@ def start():
 
 
     run = True
-    if(len(sys.argv) == 2):
+    if(len(sys.argv) == 2 ):
         pygame.mouse.set_visible(True)
         pressed = False
         pts = []
@@ -312,6 +316,8 @@ def start():
                         instr.append(curve)
                         total_length += curve.get_path_length()
 
+                        
+
                         starts = []
                         curr_length = 0
 
@@ -331,8 +337,43 @@ def start():
                             y = instr[count].y(t-starts[count])
                             map_pts.append((x,y))
 
-                        pygame.draw.lines(screen, BLACK, True, map_pts, )
-                        print(pts)
+                        print("length:", len(map_pts))
+
+                        circle_r = 50
+                        checkpoint_num = 0
+                        checkpoint_dist = 100
+                        for i in range(len(map_pts)):
+                            pygame.draw.circle(screen, BLACK, (map_pts[i][0], map_pts[i][1]), circle_r)
+
+
+                        dist = 0
+                        for i in range(1, len(map_pts)):
+                            x = map_pts[i][0]
+                            y = map_pts[i][1]
+
+                            
+                            x_p = map_pts[i-1][0]
+                            y_p = map_pts[i-1][1]
+                            dx = x-x_p
+                            dy = y-y_p
+                            dist += math.sqrt(dx*dx + dy*dy)
+                            if(dist >= checkpoint_num*checkpoint_dist):
+                                rect_angle = math.atan2(dy,dx)
+                                print("angle:", rect_angle)
+                                width = 10
+                                height = circle_r*2
+                                rect_points = [(x-width/2, y+height/2), (x+width/2, y+height/2), (x+width/2, y-height/2), (x-width/2, y-height/2)]
+                                r_rect_points = [None]*4
+                                for i in range(len(rect_points)):
+                                    p = rect_points[i]
+                                    p = (p[0]-x, p[1]-y)
+                                    p= (p[0]*math.cos(rect_angle) - p[1]*math.sin(rect_angle), p[1]*math.cos(rect_angle) + p[0]*math.sin(rect_angle))
+                                    r_rect_points[i] = (p[0]+x, p[1]+y)
+                                
+                                pygame.draw.polygon(screen, (0,0,255), r_rect_points)
+                                checkpoint_num += 1
+
+
 
             else:
                 pressed = False
@@ -475,7 +516,7 @@ def start():
                 
                 drifting_disp = myFont.render("DRIFTING", 1, RED)
                 screen.blit(drifting_disp, (1000,50))
-                
+                 
 
             else:
                 drift = False
