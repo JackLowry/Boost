@@ -43,7 +43,7 @@ def start():
     car.rect.y=800
     car.x = 300
     car.y = 800
-    car.weight = .9
+    car.weight = 3.5
     Cars.add(car)       #add this car to that group
 
     #Some variables for the car, eventually these should probably be in the object, like car.score
@@ -57,7 +57,7 @@ def start():
 
     #Stage Values
     air_resistance = .005
-    sliding_friction = .06
+    sliding_friction = .3
 
 
     #physics vars, again eventually will be in the object like car.velMag
@@ -70,7 +70,7 @@ def start():
     accDir = 90  #degrees
     accX = 0
     accY = 0
-    
+    drift = False
     weightDir = 0   #opposite of velDir
     frictionX = 0   #opposite of velX
     frictionY = 0   #opposite of velY
@@ -95,6 +95,11 @@ def start():
         elif pressed[pygame.K_q]:       #hitting q when in the game will break the loop and close the game
             run = False
             return Score
+
+
+
+        if(car.velocityDir>car.dir-2.5 and car.velocityDir<car.dir+2.5):
+            drift = False
 
         turning_angle = 0
         if(pressed[pygame.K_d]):
@@ -163,7 +168,11 @@ def start():
         centrip_display = myFont.render("centrip_a: "+str(centrip_acceleration), 1, (0,0,0))
         screen.blit(centrip_display,(500,500))
 
-        if(centrip_acceleration > weight or car.velocityDir != car.dir):
+        if(centrip_acceleration > weight):
+            drift = True
+
+
+        if(centrip_acceleration > weight or drift):
             velY = math.sin( math.radians(car.velocityDir) ) * car.velocityMagnitude
             velX = math.cos( math.radians(car.velocityDir) ) * car.velocityMagnitude
             
@@ -192,6 +201,7 @@ def start():
 
 
         else:
+            drift = False
             car.velocityMagnitude += accMag - air_acc
             car.velocityDir += turning_angle
             velY = math.sin( math.radians(car.velocityDir) ) * car.velocityMagnitude
