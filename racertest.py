@@ -759,7 +759,7 @@ if(len(sys.argv) == 1):
     p.add_reporter(neat.StdOutReporter(True))
     stats = neat.StatisticsReporter()
     p.add_reporter(stats)
-    p.add_reporter(neat.Checkpointer(1))
+    p.add_reporter(neat.Checkpointer(1, filename_prefix="cp/neat-checkpoint-"))
 
     #pe = neat.ParallelEvaluator(multiprocessing.cpu_count(), start)
     winner = p.run(start, 150)

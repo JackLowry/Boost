@@ -9,3 +9,8 @@ winner.pkl
 winner_?.pkl
 winner_??.pkl
 winner_???.pkl
+cp/*
+pkl/*
+.idea/*
+.vscode/*
+
