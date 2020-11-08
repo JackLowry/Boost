@@ -151,12 +151,12 @@ def updateHitbox(car, screen):
         pygame.draw.circle(screen, RED, r_rect_points[i], 5)
 
 
-def draw_map(screen, map_pts):
-    circle_r = 50
+def draw_map(scrn, map_pts):
+    circle_r = 100
     checkpoint_num = 0
     checkpoint_dist = 100
     for i in range(len(map_pts)):
-        pygame.draw.circle(screen, BLACK, (map_pts[i][0], map_pts[i][1]), circle_r)
+        pygame.draw.circle(scrn, BLACK, (map_pts[i][0], map_pts[i][1]), circle_r)
 
 
     dist = 0
@@ -184,7 +184,7 @@ def draw_map(screen, map_pts):
                 p= (p[0]*math.cos(rect_angle) - p[1]*math.sin(rect_angle), p[1]*math.cos(rect_angle) + p[0]*math.sin(rect_angle))
                 r_rect_points[i] = (p[0]+x, p[1]+y)
             
-            pygame.draw.polygon(screen, (0,0,255), r_rect_points)
+            pygame.draw.polygon(scrn, (0,0,255), r_rect_points)
             checkpoint_num += 1
 
 def load_map(svg_file, screen):
@@ -244,9 +244,9 @@ def load_map(svg_file, screen):
             count += 1
         x.append(instr[count].x(t-starts[count]))
         y.append(instr[count].y(t-starts[count]))
-        map_pts.append((x,y))
+        map_pts.append((x[len(x)-1], -y[len(y)-1]))
 
-    print("Hello:", len(map_pts))
+    print("Hello:", map_pts[0])
 
     #print(map_pts)
     draw_map(screen, map_pts)
@@ -333,7 +333,7 @@ def start():
     screeny = 900
     screen = pygame.display.set_mode((screenx, screeny))  #this launches the window and sets size
     bg = pygame.Surface((screenx, screeny), pygame.SRCALPHA)
-    #bg.fill(WHITE)
+    bg.fill(WHITE)
     load_map("test.svg", bg)
     #pygame.draw.circle(bg, RED, (800, 450), 500)
     screen.blit(bg, (0,0))
