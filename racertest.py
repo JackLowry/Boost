@@ -13,6 +13,8 @@ BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 RED = (255,0,0)
 GRAY = (220,220,200)
+myFont = None
+checkpoint_score = 200
 
 class Line:
 
@@ -108,12 +110,12 @@ class Box(pygame.sprite.Sprite):
 
         # Create an image of the block, and fill it with a color.
         # This could also be an image loaded from the disk.
-        print(width, height)
+        #print(width, height)
         img_tmp = pygame.Surface([width, height],pygame.SRCALPHA)
-        print(theta)
+        #print(theta)
         img_tmp.fill(color)
         self.image = pygame.transform.rotate(img_tmp,math.degrees(-theta))
-
+        self.mask = pygame.mask.from_surface(self.image)
         self.theta = theta
 
         # Fetch the rectangle object that has the dimensions of the image
@@ -158,8 +160,10 @@ class Car(pygame.sprite.Sprite):        #this is object-oriented car stuff, pret
         self.drift = False
         self.score = 0
         self.alive = True
+        self.checkpoint_num = 1
+        self.mask = None
 
-    def update(self, gas, turning, screen, bg):
+    def update(self, gas, turning, screen, bg, checkpoints, myFont):
         #aprint(gas)
         screen.blit(bg, (self.rect.x-30, self.rect.y-30), (self.rect.x-30, self.rect.y-30, self.rect.width*2, self.rect.height*2))
     
@@ -181,6 +185,7 @@ class Car(pygame.sprite.Sprite):        #this is object-oriented car stuff, pret
             self.image=copy
             self.rect = self.image.get_rect() 
             self.rect.center = (x, y)    #yeah this was weird, but it's the proper way to rotate stuff
+            self.mask = pygame.mask.from_surface(self.image)
 
 
         #print(len(path_pt))
@@ -222,6 +227,8 @@ class Car(pygame.sprite.Sprite):        #this is object-oriented car stuff, pret
             vel_acc_angle = (self.velocityDir-self.dir) % 360
             vel_perp = math.sin( math.radians(vel_acc_angle))
 
+
+
             velY += accY + self.sliding_friction*vel_perp*math.sin( math.radians((self.dir-90) % 360)) - air_acc_y
             velX += accX + self.sliding_friction*vel_perp*math.cos( math.radians((self.dir-90) % 360)) -  air_acc_x
             velY += accY #- (sliding_friction*velY + air_acc_y*.1)*np.sign(velY)w
@@ -232,7 +239,7 @@ class Car(pygame.sprite.Sprite):        #this is object-oriented car stuff, pret
             # drifting_disp = myFont.render("DRIFTING", 1, RED)
             # screen.blit(drifting_disp, (1000,50))
 
-            #ddddaaaaaprint("drifting")
+            #\print("drifting")
                 
 
         else:
@@ -256,10 +263,18 @@ class Car(pygame.sprite.Sprite):        #this is object-oriented car stuff, pret
         self.rect.centery = self.y
         
 
+
         if(not updateHitbox(self, screen)):
             print('ded')
             self.alive = False
             return self.score
+        if(pygame.sprite.collide_mask(checkpoints.sprites()[self.checkpoint_num], self) is not None):
+            self.score += checkpoint_score
+            self.checkpoint_num += 1
+            self.checkpoint_num = self.checkpoint_num % len(checkpoints)
+            print("scored!", self.score)
+
+        score_disp = myFont.render("score: " + str(self.score), 1, BLACK)
 
         #Decreasing score by 1 per tick alive
         self.score -= 1
@@ -316,7 +331,9 @@ def draw_map(scrn, map_pts):
     cp_box = []
 
     dist = 0
+    checkpoints = pygame.sprite.Group()
     for i in range(1, len(map_pts)):
+        
         x = map_pts[i][0]
         y = map_pts[i][1]
 
@@ -326,7 +343,6 @@ def draw_map(scrn, map_pts):
         dx = x-x_p
         dy = y-y_p
         dist += math.sqrt(dx*dx + dy*dy)
-        checkpoints = pygame.sprite.Group()
 
         if(dist >= checkpoint_num*checkpoint_dist):
             rect_angle = math.atan2(dy,dx)
@@ -348,7 +364,9 @@ def draw_map(scrn, map_pts):
             cp = Box(color, width, height, rect_angle, x, y)
             checkpoints.add(cp)
             checkpoint_num += 1
-        checkpoints.draw(scrn)
+    checkpoints.draw(scrn)
+
+    return(checkpoints)
 
 def load_map(svg_file, screen):
     file = open(svg_file)
@@ -412,8 +430,8 @@ def load_map(svg_file, screen):
     print("Hello:", map_pts[0])
 
     #print(map_pts)
-    draw_map(screen, map_pts)
-    return map_pts
+    checkpoints = draw_map(screen, map_pts)
+    return (map_pts, checkpoints)
 
 def save_map(pts, C_1, C_2):
     file_str = "<?xml version='1.0' encoding='UTF-8' standalone='no'?>\n<svg xmlns='http://www.w3.org/2000/svg' version='1.1' height='900px' width='1600px'>\n<path style='fill:none; stroke:black'\nd='"
@@ -446,16 +464,16 @@ def start():
     screen = pygame.display.set_mode((screenWidth, screenHeight))  #this launches the window and sets size
     bg = pygame.Surface((screenWidth, screenHeight), pygame.SRCALPHA)
     bg.fill(WHITE)
-    map_pts = load_map("test.svg", bg)
+    map_pts, checkpoints = load_map("test.svg", bg)
     #pygame.draw.circle(bg, RED, (800, 450), 500)
     screen.blit(bg, (0,0))
 
     clock = 0
     clock = pygame.time.Clock()     #honestly I forget what this is for
     FPS = 60  # The loop runs this many times a second
+    myFont = pygame.font.SysFont("Times New Roman",18)      #for displaying text in pygame
 
     keyboard = Controller()     #for pynput
-    myFont = pygame.font.SysFont("Times New Roman",18)      #for displaying text in pygame
     cars = 1
     Cars = pygame.sprite.Group()    #creates  a group, makes it easier when there are multiple carsa
 
@@ -480,6 +498,7 @@ def start():
         car.image=copy
         car.rect = car.image.get_rect() 
         car.rect.center = (car.x, car.y)    #yeah this was weird, but it's the proper way to rotate stuff
+        car.mask = pygame.mask.from_surface(car.image)
 
 
     run = True
@@ -636,7 +655,7 @@ def start():
             for i, car in enumerate(Cars):
                 if(car.alive):
                     still_alive = True
-                    score = car.update(gas, turning, screen, bg)
+                    score = car.update(gas, turning, screen, bg, checkpoints, myFont)
                     if(score is not None):
                         scores[i] = score
             
