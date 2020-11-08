@@ -332,10 +332,10 @@ def updateHitbox(car, screen):
             r_rect_points[i] = (r_rect_points[i][0],screenHeight-1)
         elif(r_rect_points[i][1] < 1):
             r_rect_points[i] = (r_rect_points[i][0],1)
-        
+        #To disable the map, comment the next 2 lines and uncomment the third line, then increase the time_between_cps global var
         if screen.get_at((int(r_rect_points[i][0]),int(r_rect_points[i][1]))) == (255, 255, 255, 255):
-            return False
-
+           return False
+        #screen.fill(WHITE)
         #pygame.draw.circle(screen, RED, r_rect_points[i], 5)
 
     return True
@@ -503,6 +503,7 @@ def start(g_list, config):
     pygame.draw.line(bg, (255,255,255), (1599, 899), (1599, 0),5)
     pygame.draw.line(bg, (255,255,255), (1599, 0), (0, 0),5)
 
+    
     #pygame.draw.circle(bg, RED, (800, 450), 500)
     screen.blit(bg, (0,0))
 
@@ -554,7 +555,7 @@ def start(g_list, config):
             key_pressed = pygame.key.get_pressed()  #pressed in an array of keys pressed at this tick
 
             if key_pressed[pygame.K_q]:       #hitting q when in the game will break the loop and close the game
-                if(n >= 3):
+                if(len(n) >= 3):
                     save_map(pts, C_1,C_2)
                 run = False
                 return car.score
@@ -763,23 +764,32 @@ if(len(sys.argv) == 1):
     p.add_reporter(stats)
     p.add_reporter(neat.Checkpointer(1, filename_prefix="cp/neat-checkpoint-"))
 
-    #pe = neat.ParallelEvaluator(multiprocessing.cpu_count(), start)
-    winner = p.run(start, 150)
+    pe = neat.ParallelEvaluator(multiprocessing.cpu_count(), start)
     
+    #comment the following if using a previously made AI
+    winner = p.run(start, 150)
     with open('pkl/winner.pkl', 'wb') as output:
-        pickle.dump(winner, output, 1)
+       pickle.dump(winner, output, 1)
 
     node_names = {-1:'ray_-90', -2: 'ray-45', -3: 'ray-0', -4: 'ray+45', -5: 'ray+90', 0:'drive', 1:'turn'}
     visualize.draw_net(config, winner, True, node_names=node_names)
     visualize.plot_stats(stats, ylog=False, view=True)
     visualize.plot_species(stats, view=True)
-    
-    #f = open("winner_10.pkl", "rb")
-    #genome = pickle.load(f)
-    #f.close()
-    #f2 = open("winner_1.pkl", "rb")
-    #genome2 = pickle.load(f2)
-    #start([(0, genome), (1, genome2)], config)
+
+
+#uncomment from here up to 'start(genomes,config)' if you want to rerun previous AIs, adjust the loop as you wish
+    # genomes = [None]*15
+    # for i in range(0,15):    
+    #     f = open("pkl/winner_"+str((i+1)*10)+".pkl", "rb")
+    #     genomes[i]=(i,pickle.load(f))
+    #     #genome = pickle.load(f)
+    #     f.close()
+    #     #f2 = open("pkl/winner_1.pkl", "rb")
+    #     #genome2 = pickle.load(f2)
+    # #start([(0, genome), (1, genome2)], config)
+    # start(genomes,config)
+
+
 
 else:
     start(None, None)
