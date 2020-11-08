@@ -130,7 +130,7 @@ class Car(pygame.sprite.Sprite):        #this is object-oriented car stuff, pret
         self.sliding_friction = 0.3
         self.accMag = 0
         self.drift = False
-        
+        self.score = 0
 
 
         #Some variables for the car, eventually these should probably be in the object, like car.score
@@ -352,7 +352,7 @@ def start():
     dy = map_pts[1][1] - map_pts[0][1]
     #this should probably be moved somewhere:
     car.dir = math.atan2(dy,dx)
-    #car.weight = 3.5 #idk why this was here
+    car.weight = 1.9
     Cars.add(car)       #add this car to that group
 
     img = pygame.image.load(car.carFile)
@@ -420,7 +420,7 @@ def start():
                 if(n >= 3):
                     save_map(pts, C_1,C_2)
                 run = False
-                return Score
+                return car.score
             clock.tick(FPS)
             left_pressed, middle_pressed, right_pressed = pygame.mouse.get_pressed()
             if(left_pressed):
@@ -551,7 +551,7 @@ def start():
             # EXIT CONDITION (ALWAYS A KEYBOARD PRESS) [we can also make the home button on controller exit later]
             elif pressed[pygame.K_q]:  # hitting q when in the game will break the loop and close the game
                 run = False
-                return Score
+                return car.score
                 #reset flag to false for next frame in case switch back to keyboard
 
             if(car.velocityDir>car.dir-2.5 and car.velocityDir<car.dir+2.5):
@@ -608,10 +608,10 @@ def start():
                 car.rect.center = (x, y)  # yeah this was weird, but it's the proper way to rotate stuff
 
             #print(len(path_pt))
-            #pygame.draw.line(screen, WHITE, path_pt[498], path_pt[499])
-            #path_pt = [(car.rect.centerx, car.rect.centery)] + path_pt[0:499]
-            #r = pygame.draw.line(screen, (0, 255, 0), path_pt[0], path_pt[1])
-            #print(r.center)
+            # pygame.draw.line(screen, WHITE, path_pt[498], path_pt[499])
+            # path_pt = [(car.rect.centerx, car.rect.centery)] + path_pt[0:499]
+            # r = pygame.draw.line(screen, (0, 255, 0), path_pt[0], path_pt[1])
+            # print(r.center)
         
             accMag = car.gas*car.carPower
             air_acc = (.5*car.air_resistance*math.pow(car.velocityMagnitude,2)+.01)*np.sign(car.velocityMagnitude)
@@ -629,7 +629,7 @@ def start():
             # fg.blit(centrip_display, (500,500))
 
             if(centrip_acceleration > car.weight):
-                drift = True
+                car.drift = True
 
 
             if(centrip_acceleration > car.weight or car.drift):
@@ -655,7 +655,9 @@ def start():
                 car.velocityDir = math.degrees(math.atan2(velY, velX))
                 
                 # drifting_disp = myFont.render("DRIFTING", 1, RED)
-                # fg.blit(drifting_disp, (1000,50))
+                # screen.blit(drifting_disp, (1000,50))
+
+                #ddddaaaaaprint("drifting")
                  
 
             else:
@@ -707,9 +709,9 @@ def start():
             Cars.draw(screen)   #draws all cars in the group to the screen
             # plot the left corner.
             if(not updateHitbox(car, screen)):
-                car.kill
-                run = False
-                print('ded')
+                 car.kill
+                 run = False
+                 print('ded')
             #screen.blit(bg, (0,0))
             pygame.display.flip()   #actually updates the screen
             
