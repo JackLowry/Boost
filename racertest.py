@@ -4,6 +4,7 @@ import numpy as np
 import math
 import sys
 import re
+import neat
 from pynput.keyboard import Key, Controller
 from inputs import devices
 from inputs import get_gamepad
@@ -14,8 +15,11 @@ WHITE = (255, 255, 255)
 RED = (255,0,0)
 GRAY = (220,220,200)
 myFont = None
-checkpoint_score = 200
-finish_score = 30000
+checkpoint_score = 100
+finish_score = 15000
+score_min_threshold = -180
+
+generation = 0
 
 class Line:
 
@@ -173,7 +177,7 @@ class Car(pygame.sprite.Sprite):        #this is object-oriented car stuff, pret
 
         turning_angle = 0
         #DIGITAL TURNING LOGIC
-        if(abs(self.velocityMagnitude)>1 & turning != 0):
+        if(abs(self.velocityMagnitude)>1 and turning != 0):
             turning_angle = self.carCornering*turning
             self.dir += self.carCornering*turning #* ( self.velocityMagnitude / carTopSpeed )
             self.dir = self.dir % 360     
@@ -265,7 +269,7 @@ class Car(pygame.sprite.Sprite):        #this is object-oriented car stuff, pret
         
 
 
-        if(not updateHitbox(self, screen)):
+        if(not updateHitbox(self, screen) or self.score < score_min_threshold):
             #print('ded')
             self.alive = False
             return self.score
@@ -461,8 +465,14 @@ def restart():
     import os
     os.execv(sys.executable, ['python'] + sys.argv)
 
-def start(manual):
+def start(g_list, config):
+    global generation
+    generation += 1
+    cars = 1
+    if(config is not None):
+        cars = len(g_list)
 
+    print("cars:", cars)
     #print(map_pts)
     global run
     #global gas
@@ -492,7 +502,6 @@ def start(manual):
     myFont = pygame.font.SysFont("Times New Roman",18)      #for displaying text in pygame
 
     keyboard = Controller()     #for pynput
-    cars = 1
     Cars = pygame.sprite.Group()    #creates  a group, makes it easier when there are multiple carsa
 
     for i in range(0, cars):
@@ -636,13 +645,17 @@ def start(manual):
         #PRINTS ALL CONNECTED DEVICES
         #for device in devices:
             #print(device)
+        n_nets = [None]*cars
+        if(g_list is not None):
+            for i in range(len(g_list)):
+                n_nets[i] = neat.nn.recurrent.RecurrentNetwork.create(g_list[i][1], config)
 
         while run:
             #screen.blit(bg, (0,0))
             #AI inputs: 5 raycast distances
             gas = 0
             turning = 0
-            if(manual):
+            if(g_list is None):
                 #COLLECT DIGITAL ACCELERATION (KEYBOARD)
                 pressed = pygame.key.get_pressed()  #pressed in an array of keys pressed at this tick
                 if(sum(pressed) != 0):  #check if there are any keyboard inputs at all. if there are none, use controller.
@@ -664,8 +677,15 @@ def start(manual):
                     turning = -1
                 elif(pressed[pygame.K_a]):
                     turning = 1
+                gas = [gas]*cars
+                turning = [turning]*cars
             else:
                 # AI CODE
+                
+                centrip_display = myFont.render("Generation: " + str(generation), 1, (0,0,0))
+                screen.blit(centrip_display, (600,100))
+
+
                 gas = [0]*cars
                 turning = [0]*cars
                 for i, car in enumerate(Cars):
@@ -683,11 +703,12 @@ def start(manual):
                             #aaprint(r_x, r_y)
                             
                         dist[j] = math.sqrt(math.pow(r_x-car.rect.centerx, 2) + math.pow(r_y-car.rect.centery, 2))
-                        print(dist[j])
-                        #pygame.draw.line(screen, RED, (car.rect.centerx, car.rect.centery), (r_x, r_y), 5)
+                    g, t = n_nets[i].activate(dist)
+                    #print("nn_out: ", g, t)
+                    gas[i] = g*2-1
+                    turning[i] = t*2-1                       
 
-                        
-
+            #print("outs:", gas, turning)
             for event in pygame.event.get(): 
                 if event.type == pygame.QUIT: 
                     run = False
@@ -700,11 +721,15 @@ def start(manual):
             for i, car in enumerate(Cars):
                 if(car.alive):
                     still_alive = True
-                    score = car.update(gas, turning, screen, bg, checkpoints, myFont)
+                    score = car.update(gas[i], turning[i], screen, bg, checkpoints, myFont)
                     if(score is not None):
                         scores[i] = score
             
             if(not still_alive):
+                if(g_list is not None):
+                    for g in g_list:
+                        #print(len(g_list), len(g_list[0]))
+                        g[1].fitness = scores[i]
                 run = False
             #Cars.update(gas, turning, screen, bg)
             Cars.draw(screen)   #draws all cars in the group to the screen
@@ -712,6 +737,21 @@ def start(manual):
             
             #screen.blit(bg, (0,0))
             pygame.display.flip()   #actually updates the screen
-            
-start(True)     #runs that start fn at the beginning
+
+
+config_path = "./config"
+config = neat.config.Config(neat.DefaultGenome, neat.DefaultReproduction,neat.DefaultSpeciesSet, neat.DefaultStagnation, config_path)
+
+p = neat.Population(config)
+
+p.add_reporter(neat.StdOutReporter(True))
+stats = neat.StatisticsReporter()
+p.add_reporter(stats)
+
+p.run(start, 100)
+
+#start(None,None)
+
+#cars = 1     
+#start(False, cars)     #runs that start fn at the beginning
 pygame.quit()       #it only gets here if q is pressed and the loop is broken, so it closes the window
