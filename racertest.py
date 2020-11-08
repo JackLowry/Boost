@@ -315,58 +315,6 @@ def save_map(pts, C_1, C_2):
 
 def start():
 
-
-    # file = open("pi.svg")
-
-    # regex = "d=.*?z"
-    # path = re.search(regex,file.read()).group()
-    # paths = path[3:].split(" ")
-
-    # # SVG STUFF
-    # coords = complex(0,0)
-    # i = 0
-    # total_length = 0
-    # instr = []
-    # while i < len(paths):
-    #     if paths[i] == "M":
-    #         coords = get_complex_coords(paths[i+1])
-    #         i+=2
-    #     elif paths[i] == "L":
-    #         end = get_complex_coords(paths[i+1])
-    #         line = Line(coords, end)
-    #         instr.append(line)
-    #         total_length += line.get_path_length()
-    #         coords = end
-    #         i+=2
-    #     elif paths[i] == "C":
-    #         end= get_complex_coords(paths[i+3])
-    #         curve = CBezier(coords, end, get_complex_coords(paths[i+1]), get_complex_coords(paths[i+2]))
-    #         instr.append(curve)
-    #         total_length += curve.get_path_length()
-    #         coords = end
-    #         i+=4
-    #     else:
-    #         i+=1
-
-    # starts = []
-    # curr_length = 0
-
-    # for i in instr:
-    #     s=i.get_path_length()/total_length
-    #     i.set_size(s)
-    #     starts.append(curr_length)
-    #     curr_length += s
-
-    # count = 0
-    # t_space = np.linspace(0,1,10001)
-    # map_pts= []
-    # for t in t_space:
-    #     if count != len(starts)-1 and starts[count+1] < t:
-    #         count += 1
-    #     x = instr[count].x(t-starts[count])
-    #     y = -instr[count].y(t-starts[count])
-    #     map_pts.append((x,y))
-
     #print(map_pts)
     global run
     #global gas
