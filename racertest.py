@@ -103,7 +103,9 @@ def geteventThread():
 class Car(pygame.sprite.Sprite):        #this is object-oriented car stuff, pretty simple
     def __init__(self, color, width, height):
         pygame.sprite.Sprite.__init__(self)
-        self.image = pygame.image.load("car.png")
+        img= pygame.image.load("car.png")
+        self.image = pygame.Surface([50,92], pygame.SRCALPHA)
+        self.image.blit(img, (0,0))
         #self.image = pygame.Surface([width, height])
         #self.image.fill(color)
         self.rect = self.image.get_rect()
@@ -127,23 +129,22 @@ def arr_to_complex(arr):
 
 def updateHitbox(car, screen):
     #store the center of the vehicle for future reference.
-    carCenterX = car.x
-    carCenterY = car.y
 
     #These values are hardcoded for now, but they are the dimensions of the car
-    carLength = 92
-    carWidth = 50
+    height = 92
+    width = 50
 
-    #leftTop = [carCenterX + math.cos(math.radians(360 - ( car.dir + 30 ) ) ) * carLength, carCenterY + math.sin( math.radians( 360 - ( car.dir + 30 ) ) ) * carWidth]
-    #leftTopY = (carLength/2)*math.cos(math.radians(90-car.dir)) + carCenterY
-    #leftTopX = (carLength/2)*math.sin(math.radians(90-car.dir)) + carCenterX
-    leftTopX = carCenterX-carWidth/2
-    differenceX = carCenterX - leftTopX
-    leftTopY = carCenterY - carLength/2
-    differenceY = carCenterY - leftTopY
-    leftTopX += (differenceX)*math.cos(math.radians(car.dir)) - (differenceY)*math.cos(math.radians(car.dir))
-    leftTop = [leftTopX,leftTopY]
-    pygame.draw.circle(screen, RED, leftTop, 5)
+    rect_points = [(car.x-width/2, car.y+height/2), (car.x+width/2, car.y+height/2), (car.x+width/2, car.y-height/2), (car.x-width/2, car.y-height/2)]
+    r_rect_points = [None]*4
+    for i in range(len(rect_points)):
+        #p = (x, y)
+        p = rect_points[i]
+        p = (p[0]-car.x, p[1]-car.y)
+        theta = math.radians(90-car.dir)
+        p= (p[0]*math.cos(theta) - p[1]*math.sin(theta), p[1]*math.cos(theta) + p[0]*math.sin(theta))
+        r_rect_points[i] = (p[0]+car.x, p[1]+car.y)
+        pygame.draw.circle(screen, RED, r_rect_points[i], 5)
+
 
 def draw_map(screen, map_pts):
     circle_r = 50
@@ -487,7 +488,9 @@ def start():
                 # accDir = (abs(accDir) % 360) * np.sign(accDir)
                 car.dir = car.dir % 360
                 x, y = car.rect.center
-                copy = pygame.image.load("car.png")
+                img = pygame.image.load("car.png")
+                copy = pygame.Surface([50,92], pygame.SRCALPHA)
+                copy.blit(img, (0,0))
                 copy = pygame.transform.rotate(copy,car.dir-90)
                 car.image=copy
                 car.rect = car.image.get_rect() 
@@ -500,7 +503,9 @@ def start():
                 # accDir = (abs(accDir) % 360) * np.sign(accDir)
                 car.dir = car.dir % 360
                 x, y = car.rect.center
-                copy = pygame.image.load("car.png")
+                img = pygame.image.load("car.png")
+                copy = pygame.Surface([50,92], pygame.SRCALPHA)
+                copy.blit(img, (0,0))
                 copy = pygame.transform.rotate(copy,car.dir-90)
                 car.image=copy
                 car.rect = car.image.get_rect() 
