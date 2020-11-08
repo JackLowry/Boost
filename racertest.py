@@ -6,6 +6,7 @@ import sys
 import re
 import neat
 import multiprocessing
+import pickle
 from pynput.keyboard import Key, Controller
 from inputs import devices
 from inputs import get_gamepad
