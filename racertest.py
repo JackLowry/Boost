@@ -758,7 +758,7 @@ p.add_reporter(stats)
 p.add_reporter(neat.Checkpointer(1))
 
 #pe = neat.ParallelEvaluator(multiprocessing.cpu_count(), start)
-winner = p.run(start, 10)
+winner = p.run(start, 100)
 
 with open('winner.pkl', 'wb') as output:
     pickle.dump(winner, output, 1)
