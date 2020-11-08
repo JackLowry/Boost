@@ -182,8 +182,69 @@ def draw_map(screen, map_pts):
             pygame.draw.polygon(screen, (0,0,255), r_rect_points)
             checkpoint_num += 1
 
-def load_map(file):
-    return
+def load_map(svg_file, screen):
+    file = open(svg_file)
+    #print(file.read())
+    #print(file.read())
+    regex = "d=.*?z"
+    #print(re.search(regex,file.read()))
+    path = re.search(regex,file.read()).group()
+    paths = path[3:].split(" ")
+    #print(paths)
+
+
+    coords = complex(0,0)
+    i = 0
+    total_length = 0
+    instr = []
+    while i < len(paths):
+        if paths[i] == "M":
+            coords = get_complex_coords(paths[i+1])
+            i+=2
+        elif paths[i] == "L":
+            end = get_complex_coords(paths[i+1])
+            line = Line(coords, end)
+            instr.append(line)
+            total_length += line.get_path_length()
+            coords = end
+            i+=2
+        elif paths[i] == "C":
+            end= get_complex_coords(paths[i+3])
+            curve = CBezier(coords, end, get_complex_coords(paths[i+1]), get_complex_coords(paths[i+2]))
+            instr.append(curve)
+            total_length += curve.get_path_length()
+            coords = end
+            i+=4
+        else:
+            i+=1
+
+
+    starts = []
+    curr_length = 0
+
+    for i in instr:
+        s=i.get_path_length()/total_length
+        i.set_size(s)
+        starts.append(curr_length)
+        curr_length += s
+
+
+    count = 0
+    t_space = np.linspace(0,1,10001)
+    x=[]
+    y=[]
+    map_pts = []
+    for t in t_space:
+        if count != len(starts)-1 and starts[count+1] < t:
+            count += 1
+        x.append(instr[count].x(t-starts[count]))
+        y.append(instr[count].y(t-starts[count]))
+        map_pts.append((x,y))
+
+    print("Hello:", len(map_pts))
+
+    #print(map_pts)
+    draw_map(screen, map_pts)
 
 def save_map(pts, C_1, C_2):
     file_str = "<?xml version='1.0' encoding='UTF-8' standalone='no'?>\n<svg xmlns='http://www.w3.org/2000/svg' version='1.1' height='900px' width='1600px'>\n<path style='fill:none; stroke:black'\nd='"
@@ -192,7 +253,7 @@ def save_map(pts, C_1, C_2):
     for i in range(1, len(pts)):
         svg_str += " C " + str(C_1[i-1][0]) + "," + str(C_1[i-1][1]) + " " + str(C_2[i-1][0]) + "," + str(C_2[i-1][1]) + " " + str(pts[i][0]) + "," + str(pts[i][1])
     n = len(C_1)-1
-    svg_str += " C " + str(C_1[n][0]) + "," + str(C_1[n][1]) + " " + str(C_2[n][0]) + "," + str(C_2[n][1]) + " " + str(pts[0][0]) + "," + str(pts[0][1])
+    svg_str += " C " + str(C_1[n][0]) + "," + str(C_1[n][1]) + " " + str(C_2[n][0]) + "," + str(C_2[n][1]) + " " + str(pts[0][0]) + "," + str(pts[0][1]) + " z"
     file_str = file_str + svg_str + post_str
     file = open('test.svg', 'w')
     file.write(file_str)
@@ -267,7 +328,8 @@ def start():
     screeny = 900
     screen = pygame.display.set_mode((screenx, screeny))  #this launches the window and sets size
     bg = pygame.Surface((screenx, screeny), pygame.SRCALPHA)
-    bg.fill(WHITE)
+    #bg.fill(WHITE)
+    load_map("test.svg", bg)
     #pygame.draw.circle(bg, RED, (800, 450), 500)
     screen.blit(bg, (0,0))
 
@@ -443,10 +505,10 @@ def start():
         for device in devices:
             print(device)
 
-        try:
-            _thread.start_new_thread(geteventThread, ())
-        except:
-            print("Error: unable to start thread")
+        #try:
+        #    _thread.start_new_thread(geteventThread, ())
+        #except:
+        #    print("Error: unable to start thread")
 
         fg = pygame.Surface((screenx, screeny))
 
