@@ -106,8 +106,8 @@ class Car(pygame.sprite.Sprite):        #this is object-oriented car stuff, pret
         carName = random.randrange(1, 20, 1);
         self.carFile = "carSprites/" + str(carName) + ".png"
         img= pygame.image.load(self.carFile)
-        self.width = 57
-        self.height = 82
+        self.width = 55 #actual 55
+        self.height = 82 #actual 82
         self.image = pygame.Surface([self.width,self.height], pygame.SRCALPHA)
         self.image.blit(img, (0,0))
         #self.image = pygame.Surface([width, height])
@@ -360,9 +360,18 @@ def start():
     car.y = map_pts[0][1]
     dx = map_pts[1][0] - map_pts[0][0]
     dy = map_pts[1][1] - map_pts[0][1]
-    car.dir = math.atan2(dy,dx)+90
+    car.dir = math.atan2(dy,dx)
     car.weight = 3.5
     Cars.add(car)       #add this car to that group
+
+    img = pygame.image.load(car.carFile)
+    copy = pygame.Surface([car.width,car.height], pygame.SRCALPHA)
+    copy.blit(img, (0,0))
+    copy = pygame.transform.rotate(copy,car.dir-90)
+    car.image=copy
+    car.rect = car.image.get_rect() 
+    car.rect.center = (car.x, car.y)    #yeah this was weird, but it's the proper way to rotate stuff
+
 
     #Some variables for the car, eventually these should probably be in the object, like car.score
     Score = 0
