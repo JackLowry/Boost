@@ -7,6 +7,7 @@ digraph {
 	"ray+90" [fillcolor=lightgray shape=box style=filled]
 	drive [fillcolor=lightblue style=filled]
 	turn [fillcolor=lightblue style=filled]
+<<<<<<< HEAD
 	75 [fillcolor=white style=filled]
 	937 [fillcolor=white style=filled]
 	"ray_-90" -> turn [color=red penwidth=0.1929324486913262 style=solid]
@@ -16,4 +17,12 @@ digraph {
 	"ray+45" -> 75 [color=red penwidth=0.16538489219811908 style=solid]
 	drive -> 937 [color=green penwidth=0.18695857693593065 style=dotted]
 	937 -> drive [color=green penwidth=0.3973951963695478 style=dotted]
+=======
+	"ray-0" -> turn [color=green penwidth=0.1631768606044061 style=solid]
+	"ray-45" -> turn [color=red penwidth=0.3722017761342584 style=solid]
+	"ray_-90" -> drive [color=green penwidth=0.1933817389390459 style=solid]
+	"ray_-90" -> turn [color=green penwidth=0.23676202154490789 style=solid]
+	"ray-45" -> drive [color=green penwidth=0.14429115692999198 style=solid]
+	"ray+90" -> turn [color=green penwidth=0.34310174009339245 style=solid]
+>>>>>>> 11f7ae2b69b243674a5e4ffb7818d7be501ee9d9
 }

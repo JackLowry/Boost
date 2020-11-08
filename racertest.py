@@ -339,7 +339,7 @@ def updateHitbox(car, screen):
     return True
 
 def draw_map(scrn, map_pts):
-    circle_r = 100
+    circle_r = 75
     checkpoint_num = 0
     checkpoint_dist = 100
     for i in range(len(map_pts)):
@@ -521,7 +521,7 @@ def start(g_list, config):
         dx = map_pts[1][0] - map_pts[0][0]
         dy = map_pts[1][1] - map_pts[0][1]
         #this should probably be moved somewhere:
-        car.dir = math.atan2(dy,dx)
+        car.dir = -math.degrees(math.atan2(dy,dx))
         car.velocityDir = car.dir
         car.weight = 1.9
         Cars.add(car)       #add this car to that group
@@ -537,7 +537,7 @@ def start(g_list, config):
 
 
     run = True
-    if(len(sys.argv) == 2 ):
+    if(len(sys.argv) > 1 and sys.argv[1] == "2"):
         pygame.mouse.set_visible(True)
         pressed = False
         pts = []
@@ -656,6 +656,7 @@ def start(g_list, config):
         n_nets = [None]*cars
         if(g_list is not None):
             for i in range(len(g_list)):
+                print(g_list[i][1])
                 n_nets[i] = neat.nn.recurrent.RecurrentNetwork.create(g_list[i][1], config)
 
         scores = [0]*cars
@@ -692,7 +693,7 @@ def start(g_list, config):
             else:
                 # AI CODE
                 
-                centrip_display = myFont.render("Generation: " + str(generation), 1, (0,0,0))
+                centrip_display = myFont.render("Generation: " + str(generation), 1, RED)
                 screen.blit(centrip_display, (600,100))
 
 
@@ -725,7 +726,6 @@ def start(g_list, config):
             clock.tick(FPS)
             if (analogAccelerationFlag == False):
                 car.gas = 0
-
             still_alive = False
             for i, car in enumerate(Cars):
                 if(car.alive):
@@ -736,6 +736,9 @@ def start(g_list, config):
             
             if(not still_alive):
                 if(g_list is not None):
+                    print(g_list)
+                    with open('pkl/winner_' + str(generation) + '.pkl', 'wb') as output:
+                        pickle.dump(g_list[scores.index(max(scores))][1], output, 1)
                     for i in range(len(g_list)):
                         #print(len(g_list), len(g_list[0]))
                         g_list[i][1].fitness = scores[i]
@@ -747,27 +750,38 @@ def start(g_list, config):
             #screen.blit(bg, (0,0))
             pygame.display.flip()   #actually updates the screen
 
+if(len(sys.argv) == 1):
+    config_path = "./config"
+    config = neat.config.Config(neat.DefaultGenome, neat.DefaultReproduction,neat.DefaultSpeciesSet, neat.DefaultStagnation, config_path)
 
-config_path = "./config"
-config = neat.config.Config(neat.DefaultGenome, neat.DefaultReproduction,neat.DefaultSpeciesSet, neat.DefaultStagnation, config_path)
+    p = neat.Population(config)
 
-p = neat.Population(config)
+    p.add_reporter(neat.StdOutReporter(True))
+    stats = neat.StatisticsReporter()
+    p.add_reporter(stats)
+    p.add_reporter(neat.Checkpointer(1))
 
-p.add_reporter(neat.StdOutReporter(True))
-stats = neat.StatisticsReporter()
-p.add_reporter(stats)
-p.add_reporter(neat.Checkpointer(1))
+    #pe = neat.ParallelEvaluator(multiprocessing.cpu_count(), start)
+    winner = p.run(start, 150)
+    
+    with open('pkl/winner.pkl', 'wb') as output:
+        pickle.dump(winner, output, 1)
 
-#pe = neat.ParallelEvaluator(multiprocessing.cpu_count(), start)
-winner = p.run(start, 50)
+    node_names = {-1:'ray_-90', -2: 'ray-45', -3: 'ray-0', -4: 'ray+45', -5: 'ray+90', 0:'drive', 1:'turn'}
+    visualize.draw_net(config, winner, True, node_names=node_names)
+    visualize.plot_stats(stats, ylog=False, view=True)
+    visualize.plot_species(stats, view=True)
+    
+    #f = open("winner_10.pkl", "rb")
+    #genome = pickle.load(f)
+    #f.close()
+    #f2 = open("winner_1.pkl", "rb")
+    #genome2 = pickle.load(f2)
+    #start([(0, genome), (1, genome2)], config)
 
-with open('winner.pkl', 'wb') as output:
-    pickle.dump(winner, output, 1)
+else:
+    start(None, None)
 
-node_names = {-1:'ray_-90', -2: 'ray-45', -3: 'ray-0', -4: 'ray+45', -5: 'ray+90', 0:'drive', 1:'turn'}
-visualize.draw_net(config, winner, True, node_names=node_names)
-visualize.plot_stats(stats, ylog=False, view=True)
-visualize.plot_species(stats, view=True)
 
 #start(None,None)
 
