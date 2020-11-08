@@ -352,6 +352,7 @@ def start():
     dy = map_pts[1][1] - map_pts[0][1]
     #this should probably be moved somewhere:
     car.dir = math.atan2(dy,dx)
+    car.velocityDir = car.dir
     car.weight = 1.9
     Cars.add(car)       #add this car to that group
 
