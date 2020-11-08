@@ -17,6 +17,8 @@ BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 RED = (255,0,0)
 GRAY = (220,220,200)
+DARKGRAY = (70,70,80)
+BLUE = (35, 53, 125)
 myFont = None
 checkpoint_score = 100
 finish_score = 15000
@@ -334,7 +336,7 @@ def updateHitbox(car, screen):
         if screen.get_at((int(r_rect_points[i][0]),int(r_rect_points[i][1]))) == (255, 255, 255, 255):
             return False
 
-        pygame.draw.circle(screen, RED, r_rect_points[i], 5)
+        #pygame.draw.circle(screen, RED, r_rect_points[i], 5)
 
     return True
 
@@ -343,7 +345,7 @@ def draw_map(scrn, map_pts):
     checkpoint_num = 0
     checkpoint_dist = 100
     for i in range(len(map_pts)):
-        pygame.draw.circle(scrn, BLACK, (map_pts[i][0], map_pts[i][1]), circle_r)
+        pygame.draw.circle(scrn, DARKGRAY, (map_pts[i][0], map_pts[i][1]), circle_r)
 
     cp_box = []
 
@@ -374,7 +376,7 @@ def draw_map(scrn, map_pts):
             #     p = (p[0]-x, p[1]-y)
             #     p= (p[0]*math.cos(rect_angle) - p[1]*math.sin(rect_angle), p[1]*math.cos(rect_angle) + p[0]*math.sin(rect_angle))
             #     r_rect_points[i] = (p[0]+x, p[1]+y)
-            color = (0,0,255)
+            color = (BLUE)
             if(checkpoint_num == 0):
                 color = (200,200,200)
             #r = pygame.draw.polygon(scrn, color, r_rect_points)
