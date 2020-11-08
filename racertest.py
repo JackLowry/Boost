@@ -131,6 +131,114 @@ class Car(pygame.sprite.Sprite):        #this is object-oriented car stuff, pret
         self.accMag = 0
         self.drift = False
         self.score = 0
+        self.alive = True
+
+    def update(self, gas, turning, screen, bg):
+        #aprint(gas)
+        screen.blit(bg, (self.rect.x-30, self.rect.y-30), (self.rect.x-30, self.rect.y-30, self.rect.width*2, self.rect.height*2))
+    
+        if(self.velocityDir>self.dir-2.5 and self.velocityDir<self.dir+2.5):
+            self.drift = False
+
+        turning_angle = 0
+        #DIGITAL TURNING LOGIC
+        if(abs(self.velocityMagnitude)>1 & turning != 0):
+            turning_angle = self.carCornering*turning
+            self.dir += self.carCornering*turning #* ( self.velocityMagnitude / carTopSpeed )
+            self.dir = self.dir % 360     
+
+            x, y = self.rect.center
+            img = pygame.image.load(self.carFile)
+            copy = pygame.Surface([self.width,self.height], pygame.SRCALPHA)
+            copy.blit(img, (0,0))
+            copy = pygame.transform.rotate(copy,self.dir-90)
+            self.image=copy
+            self.rect = self.image.get_rect() 
+            self.rect.center = (x, y)    #yeah this was weird, but it's the proper way to rotate stuff
+
+
+        #print(len(path_pt))
+        # pygame.draw.line(screen, WHITE, path_pt[498], path_pt[499])
+        # path_pt = [(self.rect.centerx, self.rect.centery)] + path_pt[0:499]
+        # r = pygame.draw.line(screen, (0, 255, 0), path_pt[0], path_pt[1])
+        # print(r.center)
+    
+        accMag = gas*self.carPower
+        air_acc = (.5*self.air_resistance*math.pow(self.velocityMagnitude,2)+.01)*np.sign(self.velocityMagnitude)
+
+        velY = 0
+        velX = 0
+
+        centrip_acceleration = 0
+
+        if(turning_angle != 0 and self.velocityMagnitude != 0):
+            turning_radius = abs(self.velocityMagnitude*360/(5*turning_angle)/(2*math.pi))
+            centrip_acceleration = self.velocityMagnitude*self.velocityMagnitude/turning_radius
+
+        # centrip_display = myFont.render("centrip_a:" + str(centrip_acceleration), 1, (0,0,0))
+        # fg.blit(centrip_display, (500,500))
+
+        if(centrip_acceleration > self.weight):
+            self.drift = True
+
+
+        if(centrip_acceleration > self.weight or self.drift):
+            velY = math.sin( math.radians(self.velocityDir) ) * self.velocityMagnitude
+            velX = math.cos( math.radians(self.velocityDir) ) * self.velocityMagnitude
+            
+            accY = math.sin( math.radians(self.dir) ) * accMag
+            accX = math.cos( math.radians(self.dir) ) * accMag
+
+            air_acc_x = math.cos( math.radians(self.velocityDir)) * air_acc
+            air_acc_y = math.sin( math.radians(self.velocityDir)) * air_acc
+
+
+            vel_acc_angle = (self.velocityDir-self.dir) % 360
+            vel_perp = math.sin( math.radians(vel_acc_angle))
+
+            velY += accY + self.sliding_friction*vel_perp*math.sin( math.radians((self.dir-90) % 360)) - air_acc_y
+            velX += accX + self.sliding_friction*vel_perp*math.cos( math.radians((self.dir-90) % 360)) -  air_acc_x
+            velY += accY #- (sliding_friction*velY + air_acc_y*.1)*np.sign(velY)w
+            velX += accX #- (sliding_friction*velX + air_acc_x*.1)*np.sign(velX)
+
+            self.velocityMagnitude = math.sqrt(velY*velY + velX*velX)
+            self.velocityDir = math.degrees(math.atan2(velY, velX))
+            
+            # drifting_disp = myFont.render("DRIFTING", 1, RED)
+            # screen.blit(drifting_disp, (1000,50))
+
+            #ddddaaaaaprint("drifting")
+                
+
+        else:
+            self.drift = False
+            self.velocityMagnitude += accMag - air_acc
+            self.velocityDir += turning_angle
+            velY = math.sin( math.radians(self.velocityDir) ) * self.velocityMagnitude
+            velX = math.cos( math.radians(self.velocityDir) ) * self.velocityMagnitude  
+
+        self.velocityDir = self.velocityDir % 360
+
+        if((self.velocityDir > (self.dir-2.5) and self.velocityDir < (self.dir+2.5)) or self.velocityMagnitude == 0):
+            self.velocityDir = self.dir
+
+        #update position of the car
+        self.x += velX
+        self.y -= velY
+
+        self.rect.centerx = self.x
+        self.rect.centery = self.y
+        run = False
+
+        if(not updateHitbox(self, screen)):
+            print('ded')
+            self.alive = False
+            return self.score
+
+        #Decreasing score by 1 per tick alive
+        self.score -= 1
+        return None
+
 
 
         #Some variables for the car, eventually these should probably be in the object, like car.score
@@ -217,7 +325,7 @@ def draw_map(scrn, map_pts):
         dist += math.sqrt(dx*dx + dy*dy)
         if(dist >= checkpoint_num*checkpoint_dist):
             rect_angle = math.atan2(dy,dx)
-            print("angle:", rect_angle)
+            #print("angle:", rect_angle)
             width = 10
             height = circle_r*2
             rect_points = [(x-width/2, y+height/2), (x+width/2, y+height/2), (x+width/2, y-height/2), (x-width/2, y-height/2)]
@@ -340,66 +448,30 @@ def start():
 
     keyboard = Controller()     #for pynput
     myFont = pygame.font.SysFont("Times New Roman",18)      #for displaying text in pygame
+    cars = 200
+    Cars = pygame.sprite.Group()    #creates  a group, makes it easier when there are multiple carsa
 
+    for i in range(0, cars):
+        car = Car(BLACK,32,64)          #init one car
+        car.rect.x=map_pts[0][0]     #setting car's position
+        car.rect.y=map_pts[0][1]
+        car.x = map_pts[0][0]
+        car.y = map_pts[0][1]
+        dx = map_pts[1][0] - map_pts[0][0]
+        dy = map_pts[1][1] - map_pts[0][1]
+        #this should probably be moved somewhere:
+        car.dir = math.atan2(dy,dx)
+        car.velocityDir = car.dir
+        car.weight = 1.9
+        Cars.add(car)       #add this car to that group
 
-    Cars = pygame.sprite.Group()    #creates  a group, makes it easier when there are multiple cars
-    car = Car(BLACK,32,64)          #init one car
-    car.rect.x=map_pts[0][0]     #setting car's position
-    car.rect.y=map_pts[0][1]
-    car.x = map_pts[0][0]
-    car.y = map_pts[0][1]
-    dx = map_pts[1][0] - map_pts[0][0]
-    dy = map_pts[1][1] - map_pts[0][1]
-    #this should probably be moved somewhere:
-    car.dir = math.atan2(dy,dx)
-    car.velocityDir = car.dir
-    car.weight = 1.9
-    Cars.add(car)       #add this car to that group
-
-    img = pygame.image.load(car.carFile)
-    copy = pygame.Surface([car.width,car.height], pygame.SRCALPHA)
-    copy.blit(img, (0,0))
-    copy = pygame.transform.rotate(copy,car.dir-90)
-    car.image=copy
-    car.rect = car.image.get_rect() 
-    car.rect.center = (car.x, car.y)    #yeah this was weird, but it's the proper way to rotate stuff
-
-
-    # #Some variables for the car, eventually these should probably be in the object, like car.score
-    # Score = 0
-
-    # #OVERRIDDEN BY GLOBAL VARIABLE GAS, CONTROLLED BY CONTROLLER.
-    # # gas = 0     #either 1 when w is pressed or 0 or -1 when s is pressed
-
-    # carPower = .15
-    #     #a 'power' number, basically the acceleration number
-    # carTopSpeed = 20    #top speed in pixels/tick
-    # carCornering = 3    #number of degrees it turns per tick of holding a or d
-    # weight = 1.9   #basically the friction value for the car, as a percentage of the current velocity that will fight its movement
-
-    # #Stage Values
-    # air_resistance = .005
-    # sliding_friction = .3
-
-
-    # #physics vars, again eventually will be in the object like car.velMag
-    # velMag = 0
-    # velDir = 90
-    # velX = 0
-    # velY = 0
-    
-    # accMag = 0
-    # accDir = 90  #degrees
-    # accX = 0
-    # accY = 0
-    # drift = False
-    # weightDir = 0   #opposite of velDir
-    # frictionX = 0   #opposite of velX
-    # frictionY = 0   #opposite of velY
-    
-    path_pt = [None]*500
-    for i in range(len(path_pt)):
-        path_pt[i] = (300,800)
+        img = pygame.image.load(car.carFile)
+        copy = pygame.Surface([car.width,car.height], pygame.SRCALPHA)
+        copy.blit(img, (0,0))
+        copy = pygame.transform.rotate(copy,car.dir-90)
+        car.image=copy
+        car.rect = car.image.get_rect() 
+        car.rect.center = (car.x, car.y)    #yeah this was weird, but it's the proper way to rotate stuff
 
 
     run = True
@@ -526,7 +598,27 @@ def start():
            print("Error: unable to start thread")
 
         while run:
+            
+            #COLLECT DIGITAL ACCELERATION (KEYBOARD)
+            pressed = pygame.key.get_pressed()  #pressed in an array of keys pressed at this tick
+            gas = 0
+            if(sum(pressed) != 0):  #check if there are any keyboard inputs at all. if there are none, use controller.
+                analogAccelerationFlag = False
+            #print("VALUE OF ACCELERATION FLAG: ", analogAccelerationFlag)
+            if (analogAccelerationFlag == False and pressed[pygame.K_w]):
+                gas = 1
+            elif (analogAccelerationFlag == False and pressed[pygame.K_s]):
+                gas = -.3
+            # EXIT CONDITION (ALWAYS A KEYBOARD PRESS) [we can also make the home button on controller exit later]
+            elif pressed[pygame.K_q]:  # hitting q when in the game will break the loop and close the game
+                run = False
+                #reset flag to false for next frame in case switch back to keyboard
 
+            turning = 0
+            if(pressed[pygame.K_d]):
+                turning = -1
+            elif(pressed[pygame.K_a]):
+                turning = 1
             
 
             for event in pygame.event.get(): 
@@ -536,183 +628,21 @@ def start():
             if (analogAccelerationFlag == False):
                 car.gas = 0
 
-            screen.blit(bg, (car.rect.x-30, car.rect.y-30), (car.rect.x-30, car.rect.y-30, car.rect.width*2, car.rect.height*2))
-
-
-            #COLLECT DIGITAL ACCELERATION (KEYBOARD)
-            pressed = pygame.key.get_pressed()  #pressed in an array of keys pressed at this tick
-
-            if(sum(pressed) != 0):  #check if there are any keyboard inputs at all. if there are none, use controller.
-                analogAccelerationFlag = False
-            #print("VALUE OF ACCELERATION FLAG: ", analogAccelerationFlag)
-            if (analogAccelerationFlag == False and pressed[pygame.K_w]):
-                car.gas = 1
-            elif (analogAccelerationFlag == False and pressed[pygame.K_s]):
-                car.gas = -.3
-            # EXIT CONDITION (ALWAYS A KEYBOARD PRESS) [we can also make the home button on controller exit later]
-            elif pressed[pygame.K_q]:  # hitting q when in the game will break the loop and close the game
+            scores = [0]*cars
+            still_alive = False
+            for i, car in enumerate(Cars):
+                if(car.alive):
+                    still_alive = True
+                    score = car.update(gas*i*.1, turning, screen, bg)
+                    if(score is not None):
+                        scores[i] = score
+            
+            if(not still_alive):
                 run = False
-                return car.score
-                #reset flag to false for next frame in case switch back to keyboard
-
-            if(car.velocityDir>car.dir-2.5 and car.velocityDir<car.dir+2.5):
-                car.drift = False
-
-            turning_angle = 0
-            #DIGITAL TURNING LOGIC
-            if(pressed[pygame.K_d]):
-                if(abs(car.velocityMagnitude)>1):
-                    turning_angle = -1*car.carCornering
-                    car.dir += -1*car.carCornering #* ( car.velocityMagnitude / carTopSpeed )
-                # accDir += -1*carCornering #degrees, and yes this works
-                # accDir = (abs(accDir) % 360) * np.sign(accDir)
-                car.dir = car.dir % 360
-                x, y = car.rect.center
-                img = pygame.image.load(car.carFile)
-                copy = pygame.Surface([car.width,car.height], pygame.SRCALPHA)
-                copy.blit(img, (0,0))
-                copy = pygame.transform.rotate(copy,car.dir-90)
-                car.image=copy
-                car.rect = car.image.get_rect() 
-                car.rect.center = (x, y)    #yeah this was weird, but it's the proper way to rotate stuff
-            elif(pressed[pygame.K_a]):
-                if(abs(car.velocityMagnitude)>1):
-                    turning_angle = car.carCornering
-                    car.dir += car.carCornering #* ( car.velocityMagnitude / carTopSpeed )
-                # accDir += carCornering  #degrees
-                # accDir = (abs(accDir) % 360) * np.sign(accDir)
-                car.dir = car.dir % 360
-                x, y = car.rect.center
-                img = pygame.image.load(car.carFile)
-                copy = pygame.Surface([car.width,car.height], pygame.SRCALPHA)
-                copy.blit(img, (0,0))
-                copy = pygame.transform.rotate(copy,car.dir-90)
-                car.image=copy
-                car.rect = car.image.get_rect() 
-                car.rect.center = (x, y)  
-
-            #ANALOG TURNING LOGIC
-
-            #print("ANALOG TURNING POWER: ", analogTurning)
-            if(analogAccelerationFlag == True):
-                if (abs(car.velocityMagnitude) > 1):
-                    turning_angle = car.carCornering * analogTurning * (-1)
-                    car.dir += car.carCornering * analogTurning * (-1)  # * ( car.velocityMagnitude / carTopSpeed )
-                    # accDir += -1*carCornering #degrees, and yes this works
-                    # accDir = (abs(accDir) % 360) * np.sign(accDir)
-                car.dir = car.dir % 360
-                x, y = car.rect.center
-                copy = pygame.image.load(car.carFile)
-                copy = pygame.transform.rotate(copy, car.dir - 90)
-                car.image = copy
-                car.rect = car.image.get_rect()
-                car.rect.center = (x, y)  # yeah this was weird, but it's the proper way to rotate stuff
-
-            #print(len(path_pt))
-            # pygame.draw.line(screen, WHITE, path_pt[498], path_pt[499])
-            # path_pt = [(car.rect.centerx, car.rect.centery)] + path_pt[0:499]
-            # r = pygame.draw.line(screen, (0, 255, 0), path_pt[0], path_pt[1])
-            # print(r.center)
-        
-            accMag = car.gas*car.carPower
-            air_acc = (.5*car.air_resistance*math.pow(car.velocityMagnitude,2)+.01)*np.sign(car.velocityMagnitude)
-
-            velY = 0
-            velX = 0
-
-            centrip_acceleration = 0
-
-            if(turning_angle != 0 and car.velocityMagnitude != 0):
-                turning_radius = abs(car.velocityMagnitude*360/(5*turning_angle)/(2*math.pi))
-                centrip_acceleration = car.velocityMagnitude*car.velocityMagnitude/turning_radius
-
-            # centrip_display = myFont.render("centrip_a:" + str(centrip_acceleration), 1, (0,0,0))
-            # fg.blit(centrip_display, (500,500))
-
-            if(centrip_acceleration > car.weight):
-                car.drift = True
-
-
-            if(centrip_acceleration > car.weight or car.drift):
-                velY = math.sin( math.radians(car.velocityDir) ) * car.velocityMagnitude
-                velX = math.cos( math.radians(car.velocityDir) ) * car.velocityMagnitude
-                
-                accY = math.sin( math.radians(car.dir) ) * accMag
-                accX = math.cos( math.radians(car.dir) ) * accMag
-
-                air_acc_x = math.cos( math.radians(car.velocityDir)) * air_acc
-                air_acc_y = math.sin( math.radians(car.velocityDir)) * air_acc
-
-
-                vel_acc_angle = (car.velocityDir-car.dir) % 360
-                vel_perp = math.sin( math.radians(vel_acc_angle))
-
-                velY += accY + car.sliding_friction*vel_perp*math.sin( math.radians((car.dir-90) % 360)) - air_acc_y
-                velX += accX + car.sliding_friction*vel_perp*math.cos( math.radians((car.dir-90) % 360)) -  air_acc_x
-                velY += accY #- (sliding_friction*velY + air_acc_y*.1)*np.sign(velY)w
-                velX += accX #- (sliding_friction*velX + air_acc_x*.1)*np.sign(velX)
-
-                car.velocityMagnitude = math.sqrt(velY*velY + velX*velX)
-                car.velocityDir = math.degrees(math.atan2(velY, velX))
-                
-                # drifting_disp = myFont.render("DRIFTING", 1, RED)
-                # screen.blit(drifting_disp, (1000,50))
-
-                #ddddaaaaaprint("drifting")
-                 
-
-            else:
-                car.drift = False
-                car.velocityMagnitude += accMag - air_acc
-                car.velocityDir += turning_angle
-                velY = math.sin( math.radians(car.velocityDir) ) * car.velocityMagnitude
-                velX = math.cos( math.radians(car.velocityDir) ) * car.velocityMagnitude  
-
-            car.velocityDir = car.velocityDir % 360
-
-            if((car.velocityDir > (car.dir-2.5) and car.velocityDir < (car.dir+2.5)) or car.velocityMagnitude == 0):
-                car.velocityDir = car.dir
-
-            
-            
-
-            # #just displaying velocity and accerlation for debugging
-            # velDisplayX = myFont.render("velx: "+str(velX), 1, (0,0,0))
-            # velDisplayY = myFont.render("vely: "+str(velY),1,(0,0,0))
-            # # fg.blit(velDisplayX,(500,150))
-            # # fg.blit(velDisplayY,(500,50))
-
-            # accXD = myFont.render("accR: "+str(accMag), 1, (0,0,0))
-            # accYD = myFont.render("accTheta: "+str(accDir),1,(0,0,0))
-            # fg.blit(accXD,(500,200))
-            # fg.blit(accYD,(500,100))
-
-            # velDisMag = myFont.render("VelMag: "+str(car.velocityMagnitude), 1, (0,0,0))
-            # velDisDir = myFont.render("VelDir: "+str(car.velocityDir),1,(0,0,0))
-            # fg.blit(velDisMag,(500,250))
-            # fg.blit(velDisDir,(500,300))
-
-            # accDisMag = myFont.render("air_acc: "+str(air_acc), 1, (0,0,0))
-            # accDisDir = myFont.render("Car.dir: "+str(car.dir),1,(0,0,0))
-            # fg.blit(accDisMag,(500,350))
-            # fg.blit(accDisDir,(500,400))
-
-            #update position of the car
-            car.x += velX
-            car.y -= velY
-
-            car.rect.centerx = car.x
-            car.rect.centery = car.y
-
-
-            
-            
+            #Cars.update(gas, turning, screen, bg)
             Cars.draw(screen)   #draws all cars in the group to the screen
             # plot the left corner.
-            if(not updateHitbox(car, screen)):
-                 car.kill
-                 run = False
-                 print('ded')
+            
             #screen.blit(bg, (0,0))
             pygame.display.flip()   #actually updates the screen
             
