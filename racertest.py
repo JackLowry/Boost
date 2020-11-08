@@ -130,6 +130,7 @@ class Car(pygame.sprite.Sprite):        #this is object-oriented car stuff, pret
         self.sliding_friction = 0.3
         self.accMag = 0
         self.drift = False
+        self.score = 0
 
 
         #Some variables for the car, eventually these should probably be in the object, like car.score
@@ -419,7 +420,7 @@ def start():
                 if(n >= 3):
                     save_map(pts, C_1,C_2)
                 run = False
-                return Score
+                return car.score
             clock.tick(FPS)
             left_pressed, middle_pressed, right_pressed = pygame.mouse.get_pressed()
             if(left_pressed):
@@ -550,7 +551,7 @@ def start():
             # EXIT CONDITION (ALWAYS A KEYBOARD PRESS) [we can also make the home button on controller exit later]
             elif pressed[pygame.K_q]:  # hitting q when in the game will break the loop and close the game
                 run = False
-                return Score
+                return car.score
                 #reset flag to false for next frame in case switch back to keyboard
 
             if(car.velocityDir>car.dir-2.5 and car.velocityDir<car.dir+2.5):
@@ -607,10 +608,10 @@ def start():
                 car.rect.center = (x, y)  # yeah this was weird, but it's the proper way to rotate stuff
 
             #print(len(path_pt))
-            #pygame.draw.line(screen, WHITE, path_pt[498], path_pt[499])
-            #path_pt = [(car.rect.centerx, car.rect.centery)] + path_pt[0:499]
-            #r = pygame.draw.line(screen, (0, 255, 0), path_pt[0], path_pt[1])
-            #print(r.center)
+            # pygame.draw.line(screen, WHITE, path_pt[498], path_pt[499])
+            # path_pt = [(car.rect.centerx, car.rect.centery)] + path_pt[0:499]
+            # r = pygame.draw.line(screen, (0, 255, 0), path_pt[0], path_pt[1])
+            # print(r.center)
         
             accMag = car.gas*car.carPower
             air_acc = (.5*car.air_resistance*math.pow(car.velocityMagnitude,2)+.01)*np.sign(car.velocityMagnitude)
