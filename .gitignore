@@ -2,10 +2,15 @@ neat-checkpoint-?
 neat-checkpoint-??
 neat-checkpoint-???
 avg_fitness.svg
-Diagraph.gv
+Digraph.gv
 Digraph.gv.svg
 speciation.svg
 winner.pkl
 winner_?.pkl
 winner_??.pkl
 winner_???.pkl
+cp/*
+pkl/*
+.idea/*
+.vscode/*
+
