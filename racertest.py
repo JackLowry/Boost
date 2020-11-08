@@ -233,7 +233,6 @@ class Car(pygame.sprite.Sprite):        #this is object-oriented car stuff, pret
             velX += accX + self.sliding_friction*vel_perp*math.cos( math.radians((self.dir-90) % 360)) -  air_acc_x
             velY += accY #- (sliding_friction*velY + air_acc_y*.1)*np.sign(velY)w
             velX += accX #- (sliding_friction*velX + air_acc_x*.1)*np.sign(velX)
-
             self.velocityMagnitude = math.sqrt(velY*velY + velX*velX)
             self.velocityDir = math.degrees(math.atan2(velY, velX))
             
