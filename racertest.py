@@ -107,7 +107,7 @@ class Car(pygame.sprite.Sprite):        #this is object-oriented car stuff, pret
         self.carFile = "carSprites/" + str(carName) + ".png"
         img= pygame.image.load(self.carFile)
         self.width = 62
-        self.height = 114
+        self.height = 114 
         self.image = pygame.Surface([self.width,self.height], pygame.SRCALPHA)
         self.image.blit(img, (0,0))
         #self.image = pygame.Surface([width, height])
