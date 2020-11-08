@@ -2,7 +2,11 @@
 fitness_criterion     = max
 fitness_threshold     = 1000000 
 #The fitness level goal, at 1 million right now
+<<<<<<< HEAD
+pop_size              = 30
+=======
 pop_size              = 20
+>>>>>>> bcb29b3ec1d9964f64a5c8ff5530a9f15df03061
 reset_on_extinction   = True
 
 [DefaultGenome]
