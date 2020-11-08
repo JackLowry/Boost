@@ -451,7 +451,15 @@ def save_map(pts, C_1, C_2):
     file.write(file_str)
     file.close()
 
+#function to restart program if user inputs the letter r
+def restart():
+    import sys
+    print("argv was", sys.argv)
+    print("sys.executable was", sys.executable)
+    print("restart now")
 
+    import os
+    os.execv(sys.executable, ['python'] + sys.argv)
 
 def start(manual):
 
@@ -648,6 +656,9 @@ def start(manual):
                 elif pressed[pygame.K_q]:  # hitting q when in the game will break the loop and close the game
                     run = False
                     #reset flag to false for next frame in case switch back to keyboard
+                elif pressed[pygame.K_r]:
+                    print("RESTARTING PROGRAM . . .")
+                    restart()
 
                 if(pressed[pygame.K_d]):
                     turning = -1
