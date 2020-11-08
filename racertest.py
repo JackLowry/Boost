@@ -449,7 +449,7 @@ def save_map(pts, C_1, C_2):
 
 
 
-def start():
+def start(manual):
 
     #print(map_pts)
     global run
@@ -621,28 +621,38 @@ def start():
             print(device)
 
         while run:
-            
-            #COLLECT DIGITAL ACCELERATION (KEYBOARD)
-            pressed = pygame.key.get_pressed()  #pressed in an array of keys pressed at this tick
-            gas = 0
-            if(sum(pressed) != 0):  #check if there are any keyboard inputs at all. if there are none, use controller.
-                analogAccelerationFlag = False
-            #print("VALUE OF ACCELERATION FLAG: ", analogAccelerationFlag)
-            if (analogAccelerationFlag == False and pressed[pygame.K_w]):
-                gas = 1
-            elif (analogAccelerationFlag == False and pressed[pygame.K_s]):
-                gas = -.3
-            # EXIT CONDITION (ALWAYS A KEYBOARD PRESS) [we can also make the home button on controller exit later]
-            elif pressed[pygame.K_q]:  # hitting q when in the game will break the loop and close the game
-                run = False
-                #reset flag to false for next frame in case switch back to keyboard
 
+            #AI inputs: 5 raycast distances
+            gas = 0
             turning = 0
-            if(pressed[pygame.K_d]):
-                turning = -1
-            elif(pressed[pygame.K_a]):
-                turning = 1
-            
+            if(manual):
+                #COLLECT DIGITAL ACCELERATION (KEYBOARD)
+                pressed = pygame.key.get_pressed()  #pressed in an array of keys pressed at this tick
+                if(sum(pressed) != 0):  #check if there are any keyboard inputs at all. if there are none, use controller.
+                    analogAccelerationFlag = False
+                #print("VALUE OF ACCELERATION FLAG: ", analogAccelerationFlag)
+                if (analogAccelerationFlag == False and pressed[pygame.K_w]):
+                    gas = 1
+                elif (analogAccelerationFlag == False and pressed[pygame.K_s]):
+                    gas = -.3
+                # EXIT CONDITION (ALWAYS A KEYBOARD PRESS) [we can also make the home button on controller exit later]
+                elif pressed[pygame.K_q]:  # hitting q when in the game will break the loop and close the game
+                    run = False
+                    #reset flag to false for next frame in case switch back to keyboard
+
+                if(pressed[pygame.K_d]):
+                    turning = -1
+                elif(pressed[pygame.K_a]):
+                    turning = 1
+            else:
+                # AI CODE
+                gas = [0]*cars
+                turning = [0]*cars
+                for i, car in enumerate(Cars):
+                    degrees = [0, 45, 90, 135, 180]
+                    length = [0]*5
+                    for j,l in enumerate(length):
+                        pass
 
             for event in pygame.event.get(): 
                 if event.type == pygame.QUIT: 
@@ -669,5 +679,5 @@ def start():
             #screen.blit(bg, (0,0))
             pygame.display.flip()   #actually updates the screen
             
-start()     #runs that start fn at the beginning
+start(True)     #runs that start fn at the beginning
 pygame.quit()       #it only gets here if q is pressed and the loop is broken, so it closes the window
