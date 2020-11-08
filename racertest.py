@@ -125,7 +125,7 @@ class Car(pygame.sprite.Sprite):        #this is object-oriented car stuff, pret
         self.gas = 0
         self.carPower = 0.15
         self.carCornering = 3
-        self.weight=1.9
+        self.weight=3.5
         self.air_resistance = 0.005
         self.sliding_friction = 0.3
         self.accMag = 0
@@ -401,8 +401,9 @@ def start():
     car.y = map_pts[0][1]
     dx = map_pts[1][0] - map_pts[0][0]
     dy = map_pts[1][1] - map_pts[0][1]
+    #this should probably be moved somewhere:
     car.dir = math.atan2(dy,dx)
-    car.weight = 3.5
+    #car.weight = 3.5 #idk why this was here
     Cars.add(car)       #add this car to that group
 
     img = pygame.image.load(car.carFile)
@@ -574,8 +575,6 @@ def start():
         except:
            print("Error: unable to start thread")
 
-        fg = pygame.Surface((screenx, screeny))
-
         while run:
 
             
@@ -607,7 +606,7 @@ def start():
                 #reset flag to false for next frame in case switch back to keyboard
 
             if(car.velocityDir>car.dir-2.5 and car.velocityDir<car.dir+2.5):
-                drift = False
+                car.drift = False
 
             turning_angle = 0
             #DIGITAL TURNING LOGIC
@@ -647,8 +646,8 @@ def start():
             #print("ANALOG TURNING POWER: ", analogTurning)
             if(analogAccelerationFlag == True):
                 if (abs(car.velocityMagnitude) > 1):
-                    turning_angle = carCornering * analogTurning * (-1)
-                    car.dir += carCornering * analogTurning * (-1)  # * ( car.velocityMagnitude / carTopSpeed )
+                    turning_angle = car.carCornering * analogTurning * (-1)
+                    car.dir += car.carCornering * analogTurning * (-1)  # * ( car.velocityMagnitude / carTopSpeed )
                     # accDir += -1*carCornering #degrees, and yes this works
                     # accDir = (abs(accDir) % 360) * np.sign(accDir)
                 car.dir = car.dir % 360
