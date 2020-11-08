@@ -103,8 +103,12 @@ def geteventThread():
 class Car(pygame.sprite.Sprite):        #this is object-oriented car stuff, pretty simple
     def __init__(self, color, width, height):
         pygame.sprite.Sprite.__init__(self)
-        img= pygame.image.load("car.png")
-        self.image = pygame.Surface([50,92], pygame.SRCALPHA)
+        carName = random.randrange(1, 20, 1);
+        self.carFile = "carSprites/" + str(carName) + ".png"
+        img= pygame.image.load(self.carFile)
+        self.width = 62
+        self.height = 114
+        self.image = pygame.Surface([self.width,self.height], pygame.SRCALPHA)
         self.image.blit(img, (0,0))
         #self.image = pygame.Surface([width, height])
         #self.image.fill(color)
@@ -120,6 +124,7 @@ class Car(pygame.sprite.Sprite):        #this is object-oriented car stuff, pret
         self.leftBottom = (0, 0)
         self.rightBottom = (0, 0)
 
+
 def get_complex_coords(string):
     c = [float(n) for n in string.split(",")]
     return complex(c[0], -c[1])
@@ -131,8 +136,8 @@ def updateHitbox(car, screen):
     #store the center of the vehicle for future reference.
 
     #These values are hardcoded for now, but they are the dimensions of the car
-    height = 92
-    width = 50
+    height = car.height
+    width = car.width
 
     rect_points = [(car.x-width/2, car.y+height/2), (car.x+width/2, car.y+height/2), (car.x+width/2, car.y-height/2), (car.x-width/2, car.y-height/2)]
     r_rect_points = [None]*4
@@ -493,8 +498,8 @@ def start():
                 # accDir = (abs(accDir) % 360) * np.sign(accDir)
                 car.dir = car.dir % 360
                 x, y = car.rect.center
-                img = pygame.image.load("car.png")
-                copy = pygame.Surface([50,92], pygame.SRCALPHA)
+                img = pygame.image.load(car.carFile)
+                copy = pygame.Surface([car.width,car.height], pygame.SRCALPHA)
                 copy.blit(img, (0,0))
                 copy = pygame.transform.rotate(copy,car.dir-90)
                 car.image=copy
@@ -508,8 +513,8 @@ def start():
                 # accDir = (abs(accDir) % 360) * np.sign(accDir)
                 car.dir = car.dir % 360
                 x, y = car.rect.center
-                img = pygame.image.load("car.png")
-                copy = pygame.Surface([50,92], pygame.SRCALPHA)
+                img = pygame.image.load(car.carFile)
+                copy = pygame.Surface([car.width,car.height], pygame.SRCALPHA)
                 copy.blit(img, (0,0))
                 copy = pygame.transform.rotate(copy,car.dir-90)
                 car.image=copy
@@ -527,7 +532,7 @@ def start():
                     # accDir = (abs(accDir) % 360) * np.sign(accDir)
                 car.dir = car.dir % 360
                 x, y = car.rect.center
-                copy = pygame.image.load("car.png")
+                copy = pygame.image.load(car.carFile)
                 copy = pygame.transform.rotate(copy, car.dir - 90)
                 car.image = copy
                 car.rect = car.image.get_rect()
