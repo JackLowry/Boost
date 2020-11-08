@@ -18,6 +18,7 @@ myFont = None
 checkpoint_score = 100
 finish_score = 15000
 score_min_threshold = -180
+time_between_cps = 3*60
 
 generation = 0
 
@@ -165,8 +166,9 @@ class Car(pygame.sprite.Sprite):        #this is object-oriented car stuff, pret
         self.drift = False
         self.score = 0
         self.alive = True
-        self.checkpoint_num = 1
+        self.checkpoint_num = 0
         self.mask = None
+        self.time_since_cp = 0
 
     def update(self, gas, turning, screen, bg, checkpoints, myFont):
         #aprint(gas)
@@ -269,24 +271,27 @@ class Car(pygame.sprite.Sprite):        #this is object-oriented car stuff, pret
         
 
 
-        if(not updateHitbox(self, screen) or self.score < score_min_threshold):
+        if(not updateHitbox(self, screen) or self.time_since_cp > time_between_cps):
             #print('ded')
             self.alive = False
             return self.score
-        if(pygame.sprite.collide_mask(checkpoints.sprites()[self.checkpoint_num], self) is not None):
-            if self.checkpoint_num == len(checkpoints):
+        if(pygame.sprite.collide_mask(checkpoints.sprites()[self.checkpoint_num%(len(checkpoints.sprites())-1)], self) is not None):
+            print(self.checkpoint_num, len(checkpoints))
+            if self.checkpoint_num == len(checkpoints)-1:
                 self.score += finish_score
+                self.alive = False
                 return self.score
                 #print("done!")
             self.score += checkpoint_score
             self.checkpoint_num += 1
+            self.time_since_cp = 0
             
             #print("scored!", self.score)
-
         score_disp = myFont.render("score: " + str(self.score), 1, BLACK)
 
         #Decreasing score by 1 per tick alive
         self.score -= 1
+        self.time_since_cp += 1
         return None
 
 def get_complex_coords(string):
@@ -650,6 +655,8 @@ def start(g_list, config):
             for i in range(len(g_list)):
                 n_nets[i] = neat.nn.recurrent.RecurrentNetwork.create(g_list[i][1], config)
 
+        scores = [0]*cars
+
         while run:
             #screen.blit(bg, (0,0))
             #AI inputs: 5 raycast distances
@@ -716,7 +723,6 @@ def start(g_list, config):
             if (analogAccelerationFlag == False):
                 car.gas = 0
 
-            scores = [0]*cars
             still_alive = False
             for i, car in enumerate(Cars):
                 if(car.alive):
@@ -727,9 +733,9 @@ def start(g_list, config):
             
             if(not still_alive):
                 if(g_list is not None):
-                    for g in g_list:
+                    for i in range(len(g_list)):
                         #print(len(g_list), len(g_list[0]))
-                        g[1].fitness = scores[i]
+                        g_list[i][1].fitness = scores[i]
                 run = False
             #Cars.update(gas, turning, screen, bg)
             Cars.draw(screen)   #draws all cars in the group to the screen
