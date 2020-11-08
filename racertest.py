@@ -76,6 +76,8 @@ class CBezier:
 run = True
 analogAccelerationFlag = False  #set to false for now, set true when analog is there
 analogTurning = 0
+screenWidth = 1600
+screenHeight = 900
 
 
 #multithreading the analog inputs
@@ -225,10 +227,11 @@ class Car(pygame.sprite.Sprite):        #this is object-oriented car stuff, pret
         #update position of the car
         self.x += velX
         self.y -= velY
+        
 
         self.rect.centerx = self.x
         self.rect.centery = self.y
-        run = False
+        
 
         if(not updateHitbox(self, screen)):
             print('ded')
@@ -239,42 +242,6 @@ class Car(pygame.sprite.Sprite):        #this is object-oriented car stuff, pret
         self.score -= 1
         return None
 
-
-
-        #Some variables for the car, eventually these should probably be in the object, like car.score
-    # Score = 0
-
-    # #OVERRIDDEN BY GLOBAL VARIABLE GAS, CONTROLLED BY CONTROLLER.
-    # # gas = 0     #either 1 when w is pressed or 0 or -1 when s is pressed
-
-    # carPower = .15
-    #     #a 'power' number, basically the acceleration number
-    # carTopSpeed = 20    #top speed in pixels/tick
-    # carCornering = 3    #number of degrees it turns per tick of holding a or d
-    # weight = 1.9   #basically the friction value for the car, as a percentage of the current velocity that will fight its movement
-
-    # #Stage Values
-    # air_resistance = .005
-    # sliding_friction = .3
-
-
-    # #physics vars, again eventually will be in the object like car.velMag
-    # 
-    # 
-    # velX = 0
-    # velY = 0
-    
-    # accMag = 0
-    # accDir = 90  #degrees
-    # accX = 0
-    # accY = 0
-    # drift = False
-    # weightDir = 0   #opposite of velDir
-    # frictionX = 0   #opposite of velX
-    # frictionY = 0   #opposite of velY
-
-
-
 def get_complex_coords(string):
     c = [float(n) for n in string.split(",")]
     return complex(c[0], -c[1])
@@ -283,6 +250,8 @@ def arr_to_complex(arr):
     return complex(arr[0], arr[1])
 
 def updateHitbox(car, screen):
+    global screenWidth
+    global screenHeight
     #store the center of the vehicle for future reference.
 
     #These values are hardcoded for now, but they are the dimensions of the car
@@ -298,8 +267,19 @@ def updateHitbox(car, screen):
         theta = math.radians(90-car.dir)
         p= (p[0]*math.cos(theta) - p[1]*math.sin(theta), p[1]*math.cos(theta) + p[0]*math.sin(theta))
         r_rect_points[i] = (p[0]+car.x, p[1]+car.y)
+        print(r_rect_points[i])
+        if(r_rect_points[i][0]>screenWidth-1):
+            r_rect_points[i] = (screenWidth-1,r_rect_points[i][1])
+        elif(r_rect_points[i][0]<1):
+            r_rect_points[i] = (1,r_rect_points[i][1])
+        if(r_rect_points[i][1] > screenHeight-1):
+            r_rect_points[i] = (r_rect_points[i][0],screenHeight-1)
+        elif(r_rect_points[i][1] < 1):
+            r_rect_points[i] = (r_rect_points[i][0],1)
+        
         if screen.get_at((int(r_rect_points[i][0]),int(r_rect_points[i][1]))) == (255, 255, 255, 255):
             return False
+
         pygame.draw.circle(screen, RED, r_rect_points[i], 5)
 
     return True
@@ -429,14 +409,14 @@ def start():
     #global gas
     global analogAccelerationFlag
     global analogTurning
-
+    global screenWidth
+    global screenHeight
         
     successes, failures = pygame.init()   #this inits pygame
     #print("{0} successes and {1} failures".format(successes, failures))
-    screenx = 1600
-    screeny = 900
-    screen = pygame.display.set_mode((screenx, screeny))  #this launches the window and sets size
-    bg = pygame.Surface((screenx, screeny), pygame.SRCALPHA)
+
+    screen = pygame.display.set_mode((screenWidth, screenHeight))  #this launches the window and sets size
+    bg = pygame.Surface((screenWidth, screenHeight), pygame.SRCALPHA)
     bg.fill(WHITE)
     map_pts = load_map("test.svg", bg)
     #pygame.draw.circle(bg, RED, (800, 450), 500)
