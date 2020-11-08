@@ -79,28 +79,6 @@ analogTurning = 0
 screenWidth = 1600
 screenHeight = 900
 
-
-#multithreading the analog inputs
-def geteventThread(car):
-    global run
-    #global gas
-    global analogAccelerationFlag
-    global analogTurning
-    while (run):
-        events = get_gamepad()
-        for event in events:
-            analogAccelerationFlag = True
-            if (event.code == "ABS_RZ"):
-                print("ACCELERATING WITH MAGNITUDE ", event.state / 255)
-                car.gas = event.state/255
-            elif (event.code == "ABS_Z"):
-                print("\tDECELERATING WITH MAGNITUDE ", -1 * (event.state/255)/3)
-                car.gas = -1 * (event.state/255)/3
-            if (event.code == "ABS_X"):
-                analogTurning = event.state / 32800
-
-
-
 class Car(pygame.sprite.Sprite):        #this is object-oriented car stuff, pretty simple
     def __init__(self, color, width, height):
         pygame.sprite.Sprite.__init__(self)
@@ -570,11 +548,6 @@ def start():
         #PRINTS ALL CONNECTED DEVICES
         for device in devices:
             print(device)
-
-        try:
-           _thread.start_new_thread(geteventThread, (car))
-        except:
-           print("Error: unable to start thread")
 
         while run:
             
