@@ -350,7 +350,7 @@ def start():
     dx = map_pts[1][0] - map_pts[0][0]
     dy = map_pts[1][1] - map_pts[0][1]
     car.dir = math.atan2(dy,dx)
-    car.weight = 3.5
+    car.weight = 1.9
     Cars.add(car)       #add this car to that group
 
     img = pygame.image.load(car.carFile)
@@ -629,7 +629,7 @@ def start():
             # fg.blit(centrip_display, (500,500))
 
             if(centrip_acceleration > car.weight):
-                drift = True
+                car.drift = True
 
 
             if(centrip_acceleration > car.weight or car.drift):
@@ -655,7 +655,9 @@ def start():
                 car.velocityDir = math.degrees(math.atan2(velY, velX))
                 
                 # drifting_disp = myFont.render("DRIFTING", 1, RED)
-                # fg.blit(drifting_disp, (1000,50))
+                # screen.blit(drifting_disp, (1000,50))
+
+                print("drifting")
                  
 
             else:
@@ -707,9 +709,11 @@ def start():
             Cars.draw(screen)   #draws all cars in the group to the screen
             # plot the left corner.
             if(not updateHitbox(car, screen)):
-                car.kill
-                run = False
-                print('ded')
+                pass
+               # print("d")
+            #     car.kill
+            #     run = False
+            #     print('ded')
             #screen.blit(bg, (0,0))
             pygame.display.flip()   #actually updates the screen
             
