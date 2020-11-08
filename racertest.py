@@ -263,8 +263,14 @@ def start():
         
     successes, failures = pygame.init()   #this inits pygame
     #print("{0} successes and {1} failures".format(successes, failures))
+    screenx = 1600
+    screeny = 900
+    screen = pygame.display.set_mode((screenx, screeny))  #this launches the window and sets size
+    bg = pygame.Surface((screenx, screeny), pygame.SRCALPHA)
+    bg.fill(WHITE)
+    #pygame.draw.circle(bg, RED, (800, 450), 500)
+    screen.blit(bg, (0,0))
 
-    screen = pygame.display.set_mode((1600, 900))  #this launches the window and sets size
     clock = 0
     clock = pygame.time.Clock()     #honestly I forget what this is for
     FPS = 60  # The loop runs this many times a second
@@ -442,17 +448,20 @@ def start():
         except:
             print("Error: unable to start thread")
 
+        fg = pygame.Surface((screenx, screeny))
+
         while run:
 
-
+            
 
             for event in pygame.event.get(): 
                 if event.type == pygame.QUIT: 
                     run = False
-            screen.fill(WHITE)
             clock.tick(FPS)
             if (analogAccelerationFlag == False):
                 gas = 0
+
+            screen.blit(bg, (car.rect.x-30, car.rect.y-30), (car.rect.x-30, car.rect.y-30, car.rect.width*2, car.rect.height*2))
 
 
             #COLLECT DIGITAL ACCELERATION (KEYBOARD)
@@ -460,7 +469,7 @@ def start():
 
             if(sum(pressed) != 0):  #check if there are any keyboard inputs at all. if there are none, use controller.
                 analogAccelerationFlag = False
-            print("VALUE OF ACCELERATION FLAG: ", analogAccelerationFlag)
+            #print("VALUE OF ACCELERATION FLAG: ", analogAccelerationFlag)
             if (analogAccelerationFlag == False and pressed[pygame.K_w]):
                 gas = 1
             elif (analogAccelerationFlag == False and pressed[pygame.K_s]):
@@ -470,10 +479,6 @@ def start():
                 run = False
                 return Score
                 #reset flag to false for next frame in case switch back to keyboard
-
-            gasPrinter = myFont.render("GAS: " + str(gas), 1, (0, 0, 0))
-            screen.blit(gasPrinter, (500, 0))
-
 
             if(car.velocityDir>car.dir-2.5 and car.velocityDir<car.dir+2.5):
                 drift = False
@@ -513,7 +518,7 @@ def start():
 
             #ANALOG TURNING LOGIC
 
-            print("ANALOG TURNING POWER: ", analogTurning)
+            #print("ANALOG TURNING POWER: ", analogTurning)
             if(analogAccelerationFlag == True):
                 if (abs(car.velocityMagnitude) > 1):
                     turning_angle = carCornering * analogTurning * (-1)
@@ -528,9 +533,11 @@ def start():
                 car.rect = car.image.get_rect()
                 car.rect.center = (x, y)  # yeah this was weird, but it's the proper way to rotate stuff
 
-
-            path_pt = [(car.rect.centerx, car.rect.centery)] + path_pt[0:998]
-            pygame.draw.lines(screen, RED, False, path_pt)
+            #print(len(path_pt))
+            #pygame.draw.line(screen, WHITE, path_pt[498], path_pt[499])
+            #path_pt = [(car.rect.centerx, car.rect.centery)] + path_pt[0:499]
+            #r = pygame.draw.line(screen, (0, 255, 0), path_pt[0], path_pt[1])
+            #print(r.center)
         
             accMag = gas*carPower
             air_acc = (.5*air_resistance*math.pow(car.velocityMagnitude,2)+.01)*np.sign(car.velocityMagnitude)
@@ -544,8 +551,8 @@ def start():
                 turning_radius = abs(car.velocityMagnitude*360/(5*turning_angle)/(2*math.pi))
                 centrip_acceleration = car.velocityMagnitude*car.velocityMagnitude/turning_radius
 
-            centrip_display = myFont.render("centrip_a:" + str(centrip_acceleration), 1, (0,0,0))
-            screen.blit(centrip_display, (500,500))
+            # centrip_display = myFont.render("centrip_a:" + str(centrip_acceleration), 1, (0,0,0))
+            # fg.blit(centrip_display, (500,500))
 
             if(centrip_acceleration > weight):
                 drift = True
@@ -573,8 +580,8 @@ def start():
                 car.velocityMagnitude = math.sqrt(velY*velY + velX*velX)
                 car.velocityDir = math.degrees(math.atan2(velY, velX))
                 
-                drifting_disp = myFont.render("DRIFTING", 1, RED)
-                screen.blit(drifting_disp, (1000,50))
+                # drifting_disp = myFont.render("DRIFTING", 1, RED)
+                # fg.blit(drifting_disp, (1000,50))
                  
 
             else:
@@ -592,26 +599,26 @@ def start():
             
             
 
-            #just displaying velocity and accerlation for debugging
-            velDisplayX = myFont.render("velx: "+str(velX), 1, (0,0,0))
-            velDisplayY = myFont.render("vely: "+str(velY),1,(0,0,0))
-            screen.blit(velDisplayX,(500,150))
-            screen.blit(velDisplayY,(500,50))
+            # #just displaying velocity and accerlation for debugging
+            # velDisplayX = myFont.render("velx: "+str(velX), 1, (0,0,0))
+            # velDisplayY = myFont.render("vely: "+str(velY),1,(0,0,0))
+            # # fg.blit(velDisplayX,(500,150))
+            # # fg.blit(velDisplayY,(500,50))
 
-            accXD = myFont.render("accR: "+str(accMag), 1, (0,0,0))
-            accYD = myFont.render("accTheta: "+str(accDir),1,(0,0,0))
-            screen.blit(accXD,(500,200))
-            screen.blit(accYD,(500,100))
+            # accXD = myFont.render("accR: "+str(accMag), 1, (0,0,0))
+            # accYD = myFont.render("accTheta: "+str(accDir),1,(0,0,0))
+            # fg.blit(accXD,(500,200))
+            # fg.blit(accYD,(500,100))
 
-            velDisMag = myFont.render("VelMag: "+str(car.velocityMagnitude), 1, (0,0,0))
-            velDisDir = myFont.render("VelDir: "+str(car.velocityDir),1,(0,0,0))
-            screen.blit(velDisMag,(500,250))
-            screen.blit(velDisDir,(500,300))
+            # velDisMag = myFont.render("VelMag: "+str(car.velocityMagnitude), 1, (0,0,0))
+            # velDisDir = myFont.render("VelDir: "+str(car.velocityDir),1,(0,0,0))
+            # fg.blit(velDisMag,(500,250))
+            # fg.blit(velDisDir,(500,300))
 
-            accDisMag = myFont.render("air_acc: "+str(air_acc), 1, (0,0,0))
-            accDisDir = myFont.render("Car.dir: "+str(car.dir),1,(0,0,0))
-            screen.blit(accDisMag,(500,350))
-            screen.blit(accDisDir,(500,400))
+            # accDisMag = myFont.render("air_acc: "+str(air_acc), 1, (0,0,0))
+            # accDisDir = myFont.render("Car.dir: "+str(car.dir),1,(0,0,0))
+            # fg.blit(accDisMag,(500,350))
+            # fg.blit(accDisDir,(500,400))
 
             #update position of the car
             car.x += velX
@@ -625,6 +632,7 @@ def start():
             Cars.draw(screen)   #draws all cars in the group to the screen
             # plot the left corner.
             updateHitbox(car, screen)
+            #screen.blit(bg, (0,0))
             pygame.display.flip()   #actually updates the screen
             
 start()     #runs that start fn at the beginning
