@@ -98,11 +98,35 @@ def geteventThread(car):
                 analogTurning = event.state / 32800
 
 
+class Box(pygame.sprite.Sprite):
+
+    # Constructor. Pass in the color of the block,
+    # and its x and y position
+    def __init__(self, color, width, height, theta, cx, cy):
+        # Call the parent class (Sprite) constructor
+        pygame.sprite.Sprite.__init__(self)
+
+        # Create an image of the block, and fill it with a color.
+        # This could also be an image loaded from the disk.
+        print(width, height)
+        img_tmp = pygame.Surface([width, height],pygame.SRCALPHA)
+        print(theta)
+        img_tmp.fill(color)
+        self.image = pygame.transform.rotate(img_tmp,math.degrees(-theta))
+
+        self.theta = theta
+
+        # Fetch the rectangle object that has the dimensions of the image
+        # Update the position of this object by setting the values of rect.x and rect.y
+        self.rect = self.image.get_rect()
+        self.rect.centerx = cx
+        self.rect.centery = cy
+
 
 class Car(pygame.sprite.Sprite):        #this is object-oriented car stuff, pretty simple
     def __init__(self, color, width, height):
         pygame.sprite.Sprite.__init__(self)
-        carName = random.randrange(1, 20, 1);
+        carName = random.randrange(1, 20, 1)
         self.carFile = "carSprites/" + str(carName) + "_70.png"
         img= pygame.image.load(self.carFile)
         self.width = 39 #actual 55
@@ -311,6 +335,7 @@ def draw_map(scrn, map_pts):
     for i in range(len(map_pts)):
         pygame.draw.circle(scrn, BLACK, (map_pts[i][0], map_pts[i][1]), circle_r)
 
+    cp_box = []
 
     dist = 0
     for i in range(1, len(map_pts)):
@@ -323,24 +348,29 @@ def draw_map(scrn, map_pts):
         dx = x-x_p
         dy = y-y_p
         dist += math.sqrt(dx*dx + dy*dy)
+        checkpoints = pygame.sprite.Group()
+
         if(dist >= checkpoint_num*checkpoint_dist):
             rect_angle = math.atan2(dy,dx)
             #print("angle:", rect_angle)
             width = 10
             height = circle_r*2
-            rect_points = [(x-width/2, y+height/2), (x+width/2, y+height/2), (x+width/2, y-height/2), (x-width/2, y-height/2)]
-            r_rect_points = [None]*4
-            for i in range(len(rect_points)):
-                #p = (x, y)
-                p = rect_points[i]
-                p = (p[0]-x, p[1]-y)
-                p= (p[0]*math.cos(rect_angle) - p[1]*math.sin(rect_angle), p[1]*math.cos(rect_angle) + p[0]*math.sin(rect_angle))
-                r_rect_points[i] = (p[0]+x, p[1]+y)
+            # rect_points = [(x-width/2, y+height/2), (x+width/2, y+height/2), (x+width/2, y-height/2), (x-width/2, y-height/2)]
+            # r_rect_points = [None]*4
+            # for i in range(len(rect_points)):
+            #     #p = (x, y)
+            #     p = rect_points[i]
+            #     p = (p[0]-x, p[1]-y)
+            #     p= (p[0]*math.cos(rect_angle) - p[1]*math.sin(rect_angle), p[1]*math.cos(rect_angle) + p[0]*math.sin(rect_angle))
+            #     r_rect_points[i] = (p[0]+x, p[1]+y)
             color = (0,0,255)
             if(checkpoint_num == 0):
                 color = (200,200,200)
-            pygame.draw.polygon(scrn, color, r_rect_points)
+            #r = pygame.draw.polygon(scrn, color, r_rect_points)
+            cp = Box(color, width, height, rect_angle, x, y)
+            checkpoints.add(cp)
             checkpoint_num += 1
+        checkpoints.draw(scrn)
 
 def load_map(svg_file, screen):
     file = open(svg_file)
@@ -448,7 +478,7 @@ def start():
 
     keyboard = Controller()     #for pynput
     myFont = pygame.font.SysFont("Times New Roman",18)      #for displaying text in pygame
-    cars = 200
+    cars = 1
     Cars = pygame.sprite.Group()    #creates  a group, makes it easier when there are multiple carsa
 
     for i in range(0, cars):
@@ -633,7 +663,7 @@ def start():
             for i, car in enumerate(Cars):
                 if(car.alive):
                     still_alive = True
-                    score = car.update(gas*i*.1, turning, screen, bg)
+                    score = car.update(gas, turning, screen, bg)
                     if(score is not None):
                         scores[i] = score
             
