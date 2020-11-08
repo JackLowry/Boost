@@ -528,10 +528,10 @@ def start():
         for device in devices:
             print(device)
 
-        #try:
-        #    _thread.start_new_thread(geteventThread, ())
-        #except:
-        #    print("Error: unable to start thread")
+        try:
+           _thread.start_new_thread(geteventThread, ())
+        except:
+           print("Error: unable to start thread")
 
         fg = pygame.Surface((screenx, screeny))
 
