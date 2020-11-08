@@ -15,6 +15,7 @@ RED = (255,0,0)
 GRAY = (220,220,200)
 myFont = None
 checkpoint_score = 200
+finish_score = 30000
 
 class Line:
 
@@ -91,10 +92,10 @@ def geteventThread(car):
         for event in events:
             analogAccelerationFlag = True
             if (event.code == "ABS_RZ"):
-                print("ACCELERATING WITH MAGNITUDE ", event.state / 255)
+                #print("ACCELERATING WITH MAGNITUDE ", event.state / 255)
                 car.gas = event.state/255
             elif (event.code == "ABS_Z"):
-                print("\tDECELERATING WITH MAGNITUDE ", -1 * (event.state/255)/3)
+                #print("\tDECELERATING WITH MAGNITUDE ", -1 * (event.state/255)/3)
                 car.gas = -1 * (event.state/255)/3
             if (event.code == "ABS_X"):
                 analogTurning = event.state / 32800
@@ -265,14 +266,18 @@ class Car(pygame.sprite.Sprite):        #this is object-oriented car stuff, pret
 
 
         if(not updateHitbox(self, screen)):
-            print('ded')
+            #print('ded')
             self.alive = False
             return self.score
         if(pygame.sprite.collide_mask(checkpoints.sprites()[self.checkpoint_num], self) is not None):
+            if self.checkpoint_num == len(checkpoints):
+                self.score += finish_score
+                return self.score
+                #print("done!")
             self.score += checkpoint_score
             self.checkpoint_num += 1
-            self.checkpoint_num = self.checkpoint_num % len(checkpoints)
-            print("scored!", self.score)
+            
+            #print("scored!", self.score)
 
         score_disp = myFont.render("score: " + str(self.score), 1, BLACK)
 
@@ -427,7 +432,7 @@ def load_map(svg_file, screen):
         y.append(instr[count].y(t-starts[count]))
         map_pts.append((x[len(x)-1], -y[len(y)-1]))
 
-    print("Hello:", map_pts[0])
+    #print("Hello:", map_pts[0])
 
     #print(map_pts)
     checkpoints = draw_map(screen, map_pts)
@@ -465,6 +470,11 @@ def start(manual):
     bg = pygame.Surface((screenWidth, screenHeight), pygame.SRCALPHA)
     bg.fill(WHITE)
     map_pts, checkpoints = load_map("test.svg", bg)
+    pygame.draw.line(bg, (255,255,255), (0, 0), (0, 899),)
+    pygame.draw.line(bg, (255,255,255), (0, 899), (1599, 899))
+    pygame.draw.line(bg, (255,255,255), (1599, 899), (1599, 0))
+    pygame.draw.line(bg, (255,255,255), (1599, 0), (0, 0))
+
     #pygame.draw.circle(bg, RED, (800, 450), 500)
     screen.blit(bg, (0,0))
 
@@ -527,7 +537,7 @@ def start(manual):
                 if(not pressed):
                     screen.fill(WHITE)
                     mouse_pos = pygame.mouse.get_pos()
-                    print(mouse_pos)
+                    #print(mouse_pos)
                     pts.append(np.array([mouse_pos[0], mouse_pos[1]]))
                     pressed = True
 
@@ -559,7 +569,7 @@ def start(manual):
 
                         for i in range(n-2, -1, -1):
                             C_1[i] = (D[i] - C[i]*C_1[i+1])/B[i]
-                            print(i)
+                            #print(i)
 
                         C_2 = [None]*n
                         for i in range(0, n-1):
@@ -603,7 +613,7 @@ def start(manual):
                             y = instr[count].y(t-starts[count])
                             map_pts.append((x,y))
 
-                        print("length:", len(map_pts))
+                        #print("length:", len(map_pts))
 
                         draw_map(screen, map_pts)
 
@@ -616,11 +626,11 @@ def start(manual):
     else:
         
         #PRINTS ALL CONNECTED DEVICES
-        for device in devices:
-            print(device)
+        #for device in devices:
+            #print(device)
 
         while run:
-
+            #screen.blit(bg, (0,0))
             #AI inputs: 5 raycast distances
             gas = 0
             turning = 0
@@ -648,10 +658,24 @@ def start(manual):
                 gas = [0]*cars
                 turning = [0]*cars
                 for i, car in enumerate(Cars):
-                    degrees = [0, 45, 90, 135, 180]
-                    length = [0]*5
-                    for j,l in enumerate(length):
-                        pass
+                    degrees = [-90, -45, 0, 45, 90]
+                    dist = [0]*5
+                    for j in range(0, 5):
+                        length = 0
+                        r_x = car.rect.centerx
+                        r_y = car.rect.centery
+                        #print(r_x, r_y)
+                        while (not (bg.get_at((int(r_x), int(r_y))) == (255, 255, 255, 255))) and length < 3000:
+                            length += 1
+                            r_x = car.rect.centerx + math.cos(math.radians(-(car.dir+degrees[j])))*length
+                            r_y = car.rect.centery + math.sin(math.radians(-(car.dir+degrees[j])))*length
+                            #aaprint(r_x, r_y)
+                            
+                        dist[j] = math.sqrt(math.pow(r_x-car.rect.centerx, 2) + math.pow(r_y-car.rect.centery, 2))
+                        print(dist[j])
+                        #pygame.draw.line(screen, RED, (car.rect.centerx, car.rect.centery), (r_x, r_y), 5)
+
+                        
 
             for event in pygame.event.get(): 
                 if event.type == pygame.QUIT: 
