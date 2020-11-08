@@ -1,0 +1,18 @@
+digraph {
+	node [fontsize=9 height=0.2 shape=circle width=0.2]
+	"ray_-90" [fillcolor=lightgray shape=box style=filled]
+	"ray-45" [fillcolor=lightgray shape=box style=filled]
+	"ray-0" [fillcolor=lightgray shape=box style=filled]
+	"ray-45" [fillcolor=lightgray shape=box style=filled]
+	"ray-90" [fillcolor=lightgray shape=box style=filled]
+	drive [fillcolor=lightblue style=filled]
+	turn [fillcolor=lightblue style=filled]
+	19 [fillcolor=white style=filled]
+	"ray-45" -> turn [color=red penwidth=0.26042376727968597 style=solid]
+	"ray-45" -> turn [color=green penwidth=0.2610494080614105 style=solid]
+	"ray-90" -> turn [color=green penwidth=0.15316356684440796 style=solid]
+	turn -> turn [color=red penwidth=0.12914345321211335 style=solid]
+	"ray_-90" -> drive [color=green penwidth=0.3019373305874282 style=solid]
+	"ray-45" -> 19 [color=green penwidth=0.18082764721985595 style=solid]
+	19 -> turn [color=green penwidth=0.31475114448816055 style=solid]
+}

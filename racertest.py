@@ -7,6 +7,7 @@ import re
 import neat
 import multiprocessing
 import pickle
+import visualize
 from pynput.keyboard import Key, Controller
 from inputs import devices
 from inputs import get_gamepad
@@ -763,7 +764,7 @@ winner = p.run(start, 100)
 with open('winner.pkl', 'wb') as output:
     pickle.dump(winner, output, 1)
 
-node_names = {-1:'ray_-90', -2: 'ray-45', -3: 'ray-0', -4: 'ray-45', -5: 'ray-90', 0:'drive', 1:'turn'}
+node_names = {-1:'ray_-90', -2: 'ray-45', -3: 'ray-0', -4: 'ray+45', -5: 'ray+90', 0:'drive', 1:'turn'}
 visualize.draw_net(config, winner, True, node_names=node_names)
 visualize.plot_stats(stats, ylog=False, view=True)
 visualize.plot_species(stats, view=True)
