@@ -2,7 +2,7 @@
 fitness_criterion     = max
 fitness_threshold     = 1000000 
 #The fitness level goal, at 1 million right now
-pop_size              = 50
+pop_size              = 20
 reset_on_extinction   = True
 
 [DefaultGenome]
@@ -10,7 +10,7 @@ reset_on_extinction   = True
 activation_default      = sigmoid
 activation_mutate_rate  = 0.05   
 #mutation rate, beweetn 0 and 1
-activation_options      = sigmoid 
+activation_options      = sigmoid gauss
 #gauss #maybe put gauss back 
 #abs clamped cube exp gauss hat identity inv log relu sigmoid sin softplus square tanh
 
