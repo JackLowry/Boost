@@ -76,7 +76,6 @@ class CBezier:
 run = True
 analogAccelerationFlag = False  #set to false for now, set true when analog is there
 analogTurning = 0
-<<<<<<< HEAD
 
 
 #multithreading the analog inputs
@@ -123,10 +122,8 @@ class Box(pygame.sprite.Sprite):
         self.rect.centerx = cx
         self.rect.centery = cy
 
-=======
 screenWidth = 1600
 screenHeight = 900
->>>>>>> 6962b2f545a9f41620f94c18114a0c8df561030c
 
 class Car(pygame.sprite.Sprite):        #this is object-oriented car stuff, pretty simple
     def __init__(self, color, width, height):
@@ -229,7 +226,6 @@ class Car(pygame.sprite.Sprite):        #this is object-oriented car stuff, pret
             velX += accX + self.sliding_friction*vel_perp*math.cos( math.radians((self.dir-90) % 360)) -  air_acc_x
             velY += accY #- (sliding_friction*velY + air_acc_y*.1)*np.sign(velY)w
             velX += accX #- (sliding_friction*velX + air_acc_x*.1)*np.sign(velX)
-
             self.velocityMagnitude = math.sqrt(velY*velY + velX*velX)
             self.velocityDir = math.degrees(math.atan2(velY, velX))
             
