@@ -18,6 +18,7 @@ def run_car(genomes, config):
         nets.append(net)
         g.fitness = 0
 
+
         #Somehow need to initiate the 200 cars here I think?
         #cars.append(Car())
 
