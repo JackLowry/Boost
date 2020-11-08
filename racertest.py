@@ -278,7 +278,7 @@ class Car(pygame.sprite.Sprite):        #this is object-oriented car stuff, pret
             self.alive = False
             return self.score
         if(pygame.sprite.collide_mask(checkpoints.sprites()[self.checkpoint_num%(len(checkpoints.sprites())-1)], self) is not None):
-            print(self.checkpoint_num, len(checkpoints))
+            #print(self.checkpoint_num, len(checkpoints))
             if self.checkpoint_num == len(checkpoints)-1:
                 self.score += finish_score
                 self.alive = False
@@ -495,10 +495,10 @@ def start(g_list, config):
     bg = pygame.Surface((screenWidth, screenHeight), pygame.SRCALPHA)
     bg.fill(WHITE)
     map_pts, checkpoints = load_map("test.svg", bg)
-    pygame.draw.line(bg, (255,255,255), (0, 0), (0, 899),)
-    pygame.draw.line(bg, (255,255,255), (0, 899), (1599, 899))
-    pygame.draw.line(bg, (255,255,255), (1599, 899), (1599, 0))
-    pygame.draw.line(bg, (255,255,255), (1599, 0), (0, 0))
+    pygame.draw.line(bg, (255,255,255), (0, 0), (0, 899),5)
+    pygame.draw.line(bg, (255,255,255), (0, 899), (1599, 899),5)
+    pygame.draw.line(bg, (255,255,255), (1599, 899), (1599, 0),5)
+    pygame.draw.line(bg, (255,255,255), (1599, 0), (0, 0),5)
 
     #pygame.draw.circle(bg, RED, (800, 450), 500)
     screen.blit(bg, (0,0))
