@@ -74,15 +74,14 @@ class CBezier:
         return ((self.c2.real-self.c1.real)**2 + (self.c2.imag - self.c1.imag)**2)**1/2
 
 run = True
-gas = 0
 analogAccelerationFlag = False  #set to false for now, set true when analog is there
 analogTurning = 0
 
 
 #multithreading the analog inputs
-def geteventThread():
+def geteventThread(car):
     global run
-    global gas
+    #global gas
     global analogAccelerationFlag
     global analogTurning
     while (run):
@@ -91,10 +90,10 @@ def geteventThread():
             analogAccelerationFlag = True
             if (event.code == "ABS_RZ"):
                 print("ACCELERATING WITH MAGNITUDE ", event.state / 255)
-                gas = event.state/255
+                car.gas = event.state/255
             elif (event.code == "ABS_Z"):
                 print("\tDECELERATING WITH MAGNITUDE ", -1 * (event.state/255)/3)
-                gas = -1 * (event.state/255)/3
+                car.gas = -1 * (event.state/255)/3
             if (event.code == "ABS_X"):
                 analogTurning = event.state / 32800
 
@@ -123,6 +122,48 @@ class Car(pygame.sprite.Sprite):        #this is object-oriented car stuff, pret
         self.rightTop = (0, 0)
         self.leftBottom = (0, 0)
         self.rightBottom = (0, 0)
+        self.gas = 0
+        self.carPower = 0.15
+        self.carCornering = 3
+        self.weight=1.9
+        self.air_resistance = 0.005
+        self.sliding_friction = 0.3
+        self.accMag = 0
+        self.drift = False
+
+
+        #Some variables for the car, eventually these should probably be in the object, like car.score
+    # Score = 0
+
+    # #OVERRIDDEN BY GLOBAL VARIABLE GAS, CONTROLLED BY CONTROLLER.
+    # # gas = 0     #either 1 when w is pressed or 0 or -1 when s is pressed
+
+    # carPower = .15
+    #     #a 'power' number, basically the acceleration number
+    # carTopSpeed = 20    #top speed in pixels/tick
+    # carCornering = 3    #number of degrees it turns per tick of holding a or d
+    # weight = 1.9   #basically the friction value for the car, as a percentage of the current velocity that will fight its movement
+
+    # #Stage Values
+    # air_resistance = .005
+    # sliding_friction = .3
+
+
+    # #physics vars, again eventually will be in the object like car.velMag
+    # 
+    # 
+    # velX = 0
+    # velY = 0
+    
+    # accMag = 0
+    # accDir = 90  #degrees
+    # accX = 0
+    # accY = 0
+    # drift = False
+    # weightDir = 0   #opposite of velDir
+    # frictionX = 0   #opposite of velX
+    # frictionY = 0   #opposite of velY
+
 
 
 def get_complex_coords(string):
@@ -328,7 +369,7 @@ def start():
 
     #print(map_pts)
     global run
-    global gas
+    #global gas
     global analogAccelerationFlag
     global analogTurning
 
@@ -373,37 +414,37 @@ def start():
     car.rect.center = (car.x, car.y)    #yeah this was weird, but it's the proper way to rotate stuff
 
 
-    #Some variables for the car, eventually these should probably be in the object, like car.score
-    Score = 0
+    # #Some variables for the car, eventually these should probably be in the object, like car.score
+    # Score = 0
 
-    #OVERRIDDEN BY GLOBAL VARIABLE GAS, CONTROLLED BY CONTROLLER.
-    # gas = 0     #either 1 when w is pressed or 0 or -1 when s is pressed
+    # #OVERRIDDEN BY GLOBAL VARIABLE GAS, CONTROLLED BY CONTROLLER.
+    # # gas = 0     #either 1 when w is pressed or 0 or -1 when s is pressed
 
-    carPower = .15
-        #a 'power' number, basically the acceleration number
-    carTopSpeed = 20    #top speed in pixels/tick
-    carCornering = 3    #number of degrees it turns per tick of holding a or d
-    weight = 1.9   #basically the friction value for the car, as a percentage of the current velocity that will fight its movement
+    # carPower = .15
+    #     #a 'power' number, basically the acceleration number
+    # carTopSpeed = 20    #top speed in pixels/tick
+    # carCornering = 3    #number of degrees it turns per tick of holding a or d
+    # weight = 1.9   #basically the friction value for the car, as a percentage of the current velocity that will fight its movement
 
-    #Stage Values
-    air_resistance = .005
-    sliding_friction = .3
+    # #Stage Values
+    # air_resistance = .005
+    # sliding_friction = .3
 
 
-    #physics vars, again eventually will be in the object like car.velMag
-    velMag = 0
-    velDir = 90
-    velX = 0
-    velY = 0
+    # #physics vars, again eventually will be in the object like car.velMag
+    # velMag = 0
+    # velDir = 90
+    # velX = 0
+    # velY = 0
     
-    accMag = 0
-    accDir = 90  #degrees
-    accX = 0
-    accY = 0
-    drift = False
-    weightDir = 0   #opposite of velDir
-    frictionX = 0   #opposite of velX
-    frictionY = 0   #opposite of velY
+    # accMag = 0
+    # accDir = 90  #degrees
+    # accX = 0
+    # accY = 0
+    # drift = False
+    # weightDir = 0   #opposite of velDir
+    # frictionX = 0   #opposite of velX
+    # frictionY = 0   #opposite of velY
     
     path_pt = [None]*500
     for i in range(len(path_pt)):
@@ -529,7 +570,7 @@ def start():
             print(device)
 
         try:
-           _thread.start_new_thread(geteventThread, ())
+           _thread.start_new_thread(geteventThread, (car))
         except:
            print("Error: unable to start thread")
 
@@ -544,7 +585,7 @@ def start():
                     run = False
             clock.tick(FPS)
             if (analogAccelerationFlag == False):
-                gas = 0
+                car.gas = 0
 
             screen.blit(bg, (car.rect.x-30, car.rect.y-30), (car.rect.x-30, car.rect.y-30, car.rect.width*2, car.rect.height*2))
 
@@ -556,9 +597,9 @@ def start():
                 analogAccelerationFlag = False
             #print("VALUE OF ACCELERATION FLAG: ", analogAccelerationFlag)
             if (analogAccelerationFlag == False and pressed[pygame.K_w]):
-                gas = 1
+                car.gas = 1
             elif (analogAccelerationFlag == False and pressed[pygame.K_s]):
-                gas = -.3
+                car.gas = -.3
             # EXIT CONDITION (ALWAYS A KEYBOARD PRESS) [we can also make the home button on controller exit later]
             elif pressed[pygame.K_q]:  # hitting q when in the game will break the loop and close the game
                 run = False
@@ -572,8 +613,8 @@ def start():
             #DIGITAL TURNING LOGIC
             if(pressed[pygame.K_d]):
                 if(abs(car.velocityMagnitude)>1):
-                    turning_angle = -1*carCornering
-                    car.dir += -1*carCornering #* ( car.velocityMagnitude / carTopSpeed )
+                    turning_angle = -1*car.carCornering
+                    car.dir += -1*car.carCornering #* ( car.velocityMagnitude / carTopSpeed )
                 # accDir += -1*carCornering #degrees, and yes this works
                 # accDir = (abs(accDir) % 360) * np.sign(accDir)
                 car.dir = car.dir % 360
@@ -587,8 +628,8 @@ def start():
                 car.rect.center = (x, y)    #yeah this was weird, but it's the proper way to rotate stuff
             elif(pressed[pygame.K_a]):
                 if(abs(car.velocityMagnitude)>1):
-                    turning_angle = carCornering
-                    car.dir += carCornering #* ( car.velocityMagnitude / carTopSpeed )
+                    turning_angle = car.carCornering
+                    car.dir += car.carCornering #* ( car.velocityMagnitude / carTopSpeed )
                 # accDir += carCornering  #degrees
                 # accDir = (abs(accDir) % 360) * np.sign(accDir)
                 car.dir = car.dir % 360
@@ -624,8 +665,8 @@ def start():
             #r = pygame.draw.line(screen, (0, 255, 0), path_pt[0], path_pt[1])
             #print(r.center)
         
-            accMag = gas*carPower
-            air_acc = (.5*air_resistance*math.pow(car.velocityMagnitude,2)+.01)*np.sign(car.velocityMagnitude)
+            accMag = car.gas*car.carPower
+            air_acc = (.5*car.air_resistance*math.pow(car.velocityMagnitude,2)+.01)*np.sign(car.velocityMagnitude)
 
             velY = 0
             velX = 0
@@ -639,11 +680,11 @@ def start():
             # centrip_display = myFont.render("centrip_a:" + str(centrip_acceleration), 1, (0,0,0))
             # fg.blit(centrip_display, (500,500))
 
-            if(centrip_acceleration > weight):
+            if(centrip_acceleration > car.weight):
                 drift = True
 
 
-            if(centrip_acceleration > weight or drift):
+            if(centrip_acceleration > car.weight or car.drift):
                 velY = math.sin( math.radians(car.velocityDir) ) * car.velocityMagnitude
                 velX = math.cos( math.radians(car.velocityDir) ) * car.velocityMagnitude
                 
@@ -657,8 +698,8 @@ def start():
                 vel_acc_angle = (car.velocityDir-car.dir) % 360
                 vel_perp = math.sin( math.radians(vel_acc_angle))
 
-                velY += accY + sliding_friction*vel_perp*math.sin( math.radians((car.dir-90) % 360)) - air_acc_y
-                velX += accX + sliding_friction*vel_perp*math.cos( math.radians((car.dir-90) % 360)) -  air_acc_x
+                velY += accY + car.sliding_friction*vel_perp*math.sin( math.radians((car.dir-90) % 360)) - air_acc_y
+                velX += accX + car.sliding_friction*vel_perp*math.cos( math.radians((car.dir-90) % 360)) -  air_acc_x
                 velY += accY #- (sliding_friction*velY + air_acc_y*.1)*np.sign(velY)w
                 velX += accX #- (sliding_friction*velX + air_acc_x*.1)*np.sign(velX)
 
@@ -670,7 +711,7 @@ def start():
                  
 
             else:
-                drift = False
+                car.drift = False
                 car.velocityMagnitude += accMag - air_acc
                 car.velocityDir += turning_angle
                 velY = math.sin( math.radians(car.velocityDir) ) * car.velocityMagnitude
