@@ -267,7 +267,6 @@ def updateHitbox(car, screen):
         theta = math.radians(90-car.dir)
         p= (p[0]*math.cos(theta) - p[1]*math.sin(theta), p[1]*math.cos(theta) + p[0]*math.sin(theta))
         r_rect_points[i] = (p[0]+car.x, p[1]+car.y)
-        print(r_rect_points[i])
         if(r_rect_points[i][0]>screenWidth-1):
             r_rect_points[i] = (screenWidth-1,r_rect_points[i][1])
         elif(r_rect_points[i][0]<1):
