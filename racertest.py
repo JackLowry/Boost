@@ -148,8 +148,11 @@ def updateHitbox(car, screen):
         theta = math.radians(90-car.dir)
         p= (p[0]*math.cos(theta) - p[1]*math.sin(theta), p[1]*math.cos(theta) + p[0]*math.sin(theta))
         r_rect_points[i] = (p[0]+car.x, p[1]+car.y)
+        if screen.get_at((int(r_rect_points[i][0]),int(r_rect_points[i][1]))) == (255, 255, 255, 255):
+            return False
         pygame.draw.circle(screen, RED, r_rect_points[i], 5)
 
+    return True
 
 def draw_map(scrn, map_pts):
     circle_r = 100
@@ -183,8 +186,10 @@ def draw_map(scrn, map_pts):
                 p = (p[0]-x, p[1]-y)
                 p= (p[0]*math.cos(rect_angle) - p[1]*math.sin(rect_angle), p[1]*math.cos(rect_angle) + p[0]*math.sin(rect_angle))
                 r_rect_points[i] = (p[0]+x, p[1]+y)
-            
-            pygame.draw.polygon(scrn, (0,0,255), r_rect_points)
+            color = (0,0,255)
+            if(checkpoint_num == 0):
+                color = (200,200,200)
+            pygame.draw.polygon(scrn, color, r_rect_points)
             checkpoint_num += 1
 
 def load_map(svg_file, screen):
@@ -250,6 +255,7 @@ def load_map(svg_file, screen):
 
     #print(map_pts)
     draw_map(screen, map_pts)
+    return map_pts
 
 def save_map(pts, C_1, C_2):
     file_str = "<?xml version='1.0' encoding='UTF-8' standalone='no'?>\n<svg xmlns='http://www.w3.org/2000/svg' version='1.1' height='900px' width='1600px'>\n<path style='fill:none; stroke:black'\nd='"
@@ -334,7 +340,7 @@ def start():
     screen = pygame.display.set_mode((screenx, screeny))  #this launches the window and sets size
     bg = pygame.Surface((screenx, screeny), pygame.SRCALPHA)
     bg.fill(WHITE)
-    load_map("test.svg", bg)
+    map_pts = load_map("test.svg", bg)
     #pygame.draw.circle(bg, RED, (800, 450), 500)
     screen.blit(bg, (0,0))
 
@@ -348,10 +354,13 @@ def start():
 
     Cars = pygame.sprite.Group()    #creates  a group, makes it easier when there are multiple cars
     car = Car(BLACK,32,64)          #init one car
-    car.rect.x=300      #setting car's position
-    car.rect.y=800
-    car.x = 300
-    car.y = 800
+    car.rect.x=map_pts[0][0]     #setting car's position
+    car.rect.y=map_pts[0][1]
+    car.x = map_pts[0][0]
+    car.y = map_pts[0][1]
+    dx = map_pts[1][0] - map_pts[0][0]
+    dy = map_pts[1][1] - map_pts[0][1]
+    car.dir = math.atan2(dy,dx)+90
     car.weight = 3.5
     Cars.add(car)       #add this car to that group
 
@@ -694,11 +703,15 @@ def start():
             car.rect.centerx = car.x
             car.rect.centery = car.y
 
-        
+
+            
             
             Cars.draw(screen)   #draws all cars in the group to the screen
             # plot the left corner.
-            updateHitbox(car, screen)
+            if(not updateHitbox(car, screen)):
+                car.kill
+                run = False
+                print('ded')
             #screen.blit(bg, (0,0))
             pygame.display.flip()   #actually updates the screen
             
