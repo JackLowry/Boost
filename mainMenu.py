@@ -7,7 +7,7 @@ import os
 
 BLUE = (0, 0, 255)
 WHITE = (255, 255, 255)
-GRAY = (220,220,200)
+GRAY = (105,105,105)
 BLACK = (0, 0, 0)
 
 def create_surface_with_text(text, font_size, text_rgb, bg_rgb):
@@ -85,8 +85,8 @@ def title_screen(screen):
     boostButton = UIElement(
         center_position=(400, 200),
         font_size=50,
-        bg_rgb=BLUE,
-        text_rgb=BLACK,
+        bg_rgb=GRAY,
+        text_rgb=WHITE,
         text="B O O S T !",
         action=GameState.QUIT,
     )
@@ -94,19 +94,38 @@ def title_screen(screen):
     quit_btn = UIElement(
         center_position=(400, 500),
         font_size=30,
-        bg_rgb=BLUE,
-        text_rgb=BLACK,
+        bg_rgb=GRAY,
+        text_rgb=WHITE,
         text="Quit",
+        action=GameState.QUIT,
+    )
+
+    testDriveButton = UIElement(
+        center_position=(400, 100),
+        font_size=25,
+        bg_rgb=GRAY,
+        text_rgb=WHITE,
+        text="Test Drive",
+        action=GameState.QUIT,
+    )
+
+    mapButton = UIElement(
+        center_position=(400, 300),
+        font_size=25,
+        bg_rgb=GRAY,
+        text_rgb=WHITE,
+        text="Map Editor",
         action=GameState.QUIT,
     )
 
     chadTitleScreen = UIElement(
         center_position=(400, 400),
         font_size=15,
-        bg_rgb=BLUE,
-        text_rgb=BLACK,
+        bg_rgb=GRAY,
+        text_rgb=WHITE,
         text="Created by Jack Lowry, Michael Dasaro, and Cyrus Majd",
     )
+
 
     # main loop
     while True:
@@ -114,24 +133,40 @@ def title_screen(screen):
         for event in pygame.event.get():
             if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
                 mouse_up = True
-        screen.fill(BLUE)
+        screen.fill(GRAY)
 
         chadTitleScreen.update(pygame.mouse.get_pos(), mouse_up)
         chadTitleScreen.draw(screen)
+
+        TST_DRIVE_MAN = testDriveButton.update(pygame.mouse.get_pos(), mouse_up)
+        if TST_DRIVE_MAN is not None:
+            print("Loading test drive...")
+            os.system('python racertest.py 1')
+            # pygame.quit()
+            # return
+        testDriveButton.draw(screen)
+
+        MAP_MAN_POG = mapButton.update(pygame.mouse.get_pos(), mouse_up)
+        if MAP_MAN_POG is not None:
+            print("opening map editor")
+            os.system('python racertest.py 2')
+            # pygame.quit()
+            # return
+        mapButton.draw(screen)
 
         BOOST_MODE_KAPPA = boostButton.update(pygame.mouse.get_pos(), mouse_up)
         if BOOST_MODE_KAPPA is not None:
             print("LOL POG")
             os.system('python racertest.py')
-            pygame.quit()
-            return
+            # pygame.quit()
+            # return
         boostButton.draw(screen)
 
         LOSER_MODE_IDIOT = quit_btn.update(pygame.mouse.get_pos(), mouse_up)
         if LOSER_MODE_IDIOT is not None:
             print("aiight THOT")
             pygame.quit()
-            return
+            # return
         quit_btn.draw(screen)
         pygame.display.flip()
 

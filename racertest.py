@@ -142,7 +142,7 @@ class Car(pygame.sprite.Sprite):        #this is object-oriented car stuff, pret
     def __init__(self, color, width, height):
         pygame.sprite.Sprite.__init__(self)
         carName = random.randrange(1, 20, 1)
-        self.carFile = "carSprites/" + str(carName) + "_70.png"
+        self.carFile = "carSprites/" + str(carName) + "_70T.png"
         img= pygame.image.load(self.carFile)
         self.width = 39 #actual 55
         self.height = 56 #actual 82
