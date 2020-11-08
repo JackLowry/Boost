@@ -130,6 +130,7 @@ class Car(pygame.sprite.Sprite):        #this is object-oriented car stuff, pret
         self.sliding_friction = 0.3
         self.accMag = 0
         self.drift = False
+        
 
 
         #Some variables for the car, eventually these should probably be in the object, like car.score
