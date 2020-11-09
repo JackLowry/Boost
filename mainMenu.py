@@ -4,7 +4,7 @@ from pygame.sprite import Sprite
 from pygame.rect import Rect
 from enum import Enum
 import os
-
+#acts differently on windows than on linux. Looks like Python 2.xx works but python 3.xx doesn't
 BLUE = (0, 0, 255)
 WHITE = (255, 255, 255)
 GRAY = (105,105,105)
