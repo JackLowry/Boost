@@ -1,4 +1,4 @@
-#Boost
+##Boost
 Hi, thanks for checking out Boost!
 We're proud to announce that we won the Maverick Category at HackRU 2020 Fall, here's our DevPost: https://devpost.com/software/boost-ifdewk
 Anyway, if you'd like to try Boost for yourself, here's everything you'll need to do:
